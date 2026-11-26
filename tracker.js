@@ -12,11 +12,7 @@
   status.id = 'logStatus';
   controls.appendChild(status);
 
-  if (!window.showOpenFilePicker) {
-    btn.disabled = true;
-    btn.title = 'Seu navegador não suporta leitura contínua de arquivos. Use Chrome ou Edge.';
-    return;
-  }
+  const LIVE = typeof window.showOpenFilePicker === 'function';
 
   // Nomes das áreas no cliente em português → nome em inglês usado no guia
   const PT = {
@@ -137,6 +133,7 @@
     btn.classList.add('active');
     btn.textContent = 'Conectado ✓';
     setStatus();
+    saved = h;
     saveHandle(h);
   }
 
@@ -157,22 +154,56 @@
   const saveHandle = h => idb('readwrite', s => s.put(h, 'clientLog')).catch(() => {});
   const loadHandle = () => idb('readonly', s => s.get('clientLog')).catch(() => null);
 
+  // Sem File System Access (Brave, Firefox, Opera…): lê o arquivo uma vez; clique de novo para atualizar
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.txt';
+  fileInput.style.display = 'none';
+  document.body.appendChild(fileInput);
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files[0];
+    fileInput.value = '';
+    if (!f) return;
+    status.textContent = 'Lendo log…';
+    try {
+      parse(await f.slice(Math.max(0, f.size - 2_000_000)).text(), false);
+      setStatus();
+      btn.textContent = 'Atualizar do log';
+      if (!zone) status.textContent = 'Nenhuma área encontrada nesse arquivo — é o Client.txt do PoE2?';
+    } catch (e) {
+      status.textContent = 'Erro ao ler: ' + e.message;
+    }
+  });
+
+  let saved = null;
   btn.addEventListener('click', async () => {
     if (timer) { stop(''); return; }
+    if (!LIVE) {
+      status.textContent = 'Seu navegador não acompanha o arquivo ao vivo: escolha o Client.txt (clique de novo para atualizar). Chrome/Edge atualizam sozinhos.';
+      fileInput.click();
+      return;
+    }
     try {
-      let h = await loadHandle();
-      if (h && (await h.requestPermission({ mode: 'read' })) !== 'granted') h = null;
+      let h = saved;
+      if (h) {
+        status.textContent = 'Pedindo permissão…';
+        if ((await h.requestPermission({ mode: 'read' })) !== 'granted') h = null;
+      }
       if (!h) {
+        status.textContent = 'Escolha o Client.txt (pasta do jogo → logs)';
         [h] = await window.showOpenFilePicker({
           id: 'poe2-log',
           types: [{ description: 'Client.txt do PoE2', accept: { 'text/plain': ['.txt'] } }],
         });
       }
+      status.textContent = 'Lendo log…';
       await start(h);
+      if (!zone) status.textContent = 'Conectado, mas nenhuma área encontrada ainda — é o Client.txt do PoE2?';
     } catch (e) {
-      if (e.name !== 'AbortError') status.textContent = 'Erro ao abrir o log: ' + e.message;
+      console.error(e);
+      status.textContent = e.name === 'AbortError' ? '' : 'Erro ao abrir o log: ' + e.message;
     }
   });
 
-  loadHandle().then(h => { if (h) btn.textContent = 'Reconectar ao jogo'; });
+  if (LIVE) loadHandle().then(h => { if (h) { saved = h; btn.textContent = 'Reconectar ao jogo'; } });
 })();
