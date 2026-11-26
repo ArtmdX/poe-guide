@@ -241,12 +241,6 @@ main { padding: 1.25rem 1.5rem 40vh; min-width: 0; }
 
 .callout-setup { border-left-color: var(--gem); }
 .callout-setup > summary { color: var(--gem); }
-.setup-links { display: grid; gap: 0.3rem; margin-top: 0.6rem; }
-.setup-link { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; font-size: 0.84rem; }
-.setup-link .main { font-weight: 700; }
-.setup-link .plus { color: var(--faint); }
-.gem-tag { padding: 0 0.4rem; border-radius: 4px; background: var(--surface-2); border: 1px solid var(--border); }
-.gem-tag.new { color: var(--perm); border-color: color-mix(in srgb, var(--perm) 50%, var(--border)); }
 .setup-legend { margin-top: 0.5rem; font-size: 0.74rem; color: var(--faint); }
 
 .callout-passive { border-left-color: var(--loc); }
@@ -284,6 +278,33 @@ body.hide-build .asc-hint,
 body.hide-build .callout-setup,
 body.hide-build .callout-passive { display: none; }
 
+/* ============ Árvore de gemas (skill → supports) ============ */
+.gem-tree { display: grid; gap: 0.55rem; }
+.callout .gem-tree { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.6rem 1.2rem; margin-top: 0.7rem; }
+.gt-node { display: flex; align-items: center; gap: 0.4rem; min-height: 22px; font-size: 0.84rem; }
+.gt-node input { margin: 0; accent-color: var(--accent); cursor: pointer; }
+label.gt-node:has(input) { cursor: pointer; }
+.gt-skill { font-weight: 700; color: var(--text); }
+.gt-skill::before { content: ''; width: 8px; height: 8px; flex-shrink: 0; transform: rotate(45deg); background: var(--gem); border-radius: 1px; }
+.gt-skill:has(input)::before { display: none; }
+.gt-supports { margin-left: 6px; }
+.gt-sup { position: relative; padding-left: 18px; color: var(--muted); }
+/* traço: desce da skill e vira para a direita em cada support */
+.gt-sup::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 50%;
+  border-left: 1px solid var(--faint);
+  border-bottom: 1px solid var(--faint);
+  border-bottom-left-radius: 5px;
+}
+.gt-sup:not(:last-child)::after { content: ''; position: absolute; left: 0; top: 50%; bottom: 0; border-left: 1px solid var(--faint); }
+.gt-node.owned span { text-decoration: line-through; opacity: 0.5; }
+.gt-node.new span { color: var(--perm); }
+
 /* ============ Painel da build ============ */
 .bp { display: grid; gap: 0.9rem; font-size: 0.84rem; }
 .bp-head { padding: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
@@ -292,10 +313,6 @@ body.hide-build .callout-passive { display: none; }
 .bp-actions { display: flex; gap: 0.3rem; margin-top: 0.6rem; }
 .bp-sec h3 { margin: 0 0 0.3rem; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 .bp-sec h3 small { font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--faint); }
-.bp-gem { display: flex; align-items: center; gap: 0.4rem; padding: 2px 0; cursor: pointer; }
-.bp-gem input { margin: 0; accent-color: var(--accent); }
-.bp-gem.owned span { text-decoration: line-through; opacity: 0.5; }
-.bp-gem.sup span { color: var(--muted); }
 .bp select { width: 100%; padding: 0.25rem; font-size: 0.82rem; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; }
 .bp pre { max-height: 260px; overflow: auto; white-space: pre-wrap; font-size: 0.75rem; color: var(--muted); }
 .bp-empty { padding: 1rem; text-align: center; color: var(--muted); background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius); }

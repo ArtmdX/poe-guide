@@ -103,15 +103,13 @@
   let owned = store.get(OWNED_KEY, {});
   let setIdx = store.get(BUILD_KEY + '-set', 0);
 
-  function currentGems() {
-    const set = build?.skillSets[setIdx] || build?.skillSets[0];
-    if (!set) return { skills: [], supports: [] };
-    const skills = [], supports = [];
-    set.links.forEach(link => link.forEach(g => {
-      const list = g.support ? supports : skills;
-      if (!list.includes(g.name)) list.push(g.name);
-    }));
-    return { skills, supports };
+  // Supports são identificadas pela skill em que estão ligadas: "Skill›Support"
+  const SEP = '›';
+  const supKey = (host, sup) => host + SEP + sup;
+  const splitKey = k => { const i = k.indexOf(SEP); return i < 0 ? [null, k] : [k.slice(0, i), k.slice(i + 1)]; };
+
+  function currentSet() {
+    return build?.skillSets[setIdx] || build?.skillSets[0];
   }
 
   // ---------- Dicas nos passos ----------
@@ -130,16 +128,36 @@
     return best || build.skillSets[setIdx] || build.skillSets[0];
   }
 
-  let supportHost = {};
+  // Uma entrada por skill e uma por (skill, support) — a mesma support em 2 skills conta 2 vezes
   function gemsOf(set) {
     const skills = [], supports = [], spirit = [];
-    set.links.forEach(link => link.forEach(g => {
+    set.links.forEach(link => {
       const main = link.find(x => !x.support);
-      if (g.support && main && !supportHost[g.name]) supportHost[g.name] = main.name;
-      const list = g.support ? supports : SPIRIT_RE.test(g.name) ? spirit : skills;
-      if (!list.includes(g.name)) list.push(g.name);
-    }));
+      link.forEach(g => {
+        if (g.support) {
+          const k = supKey(main ? main.name : '?', g.name);
+          if (!supports.includes(k)) supports.push(k);
+        } else {
+          const list = SPIRIT_RE.test(g.name) ? spirit : skills;
+          if (!list.includes(g.name)) list.push(g.name);
+        }
+      });
+    });
     return { skills, supports, spirit };
+  }
+
+  // Árvore skill → supports (usada no painel e no setup de cada ato)
+  function gemTree(links, { checkbox = false, isNew = () => false } = {}) {
+    const box = key => checkbox ? `<input type="checkbox" data-gem="${esc(key)}"${owned[key] ? ' checked' : ''}>` : '';
+    const node = (cls, key, label) =>
+      `<label class="gt-node ${cls}${owned[key] && checkbox ? ' owned' : ''}${isNew(key) ? ' new' : ''}">${box(key)}<span>${esc(label)}</span></label>`;
+    return '<div class="gem-tree">' + links.map(link => {
+      const main = link.find(x => !x.support) || link[0];
+      const sups = link.filter(x => x.support);
+      return '<div class="gt-link">' + node('gt-skill', main.name, main.name) +
+        (sups.length ? '<div class="gt-supports">' + sups.map(x => node('gt-sup', supKey(main.name, x.name), x.name)).join('') + '</div>' : '') +
+        '</div>';
+    }).join('') + '</div>';
   }
 
   function renderHints() {
@@ -147,7 +165,6 @@
     document.body.classList.toggle('no-build', !build);
     if (!build) return;
 
-    supportHost = {};
     const seen = new Set();
     const queue = { skill: [], support: [], spirit: [] };
     for (let act = 1; act <= 4; act++) {
@@ -163,15 +180,10 @@
       if (header) {
         const box = document.createElement('details');
         box.className = 'callout callout-setup build-setup';
-        const tag = n => `<span class="gem-tag${isNew(n) ? ' new' : ''}">${esc(n)}</span>`;
         box.innerHTML =
           `<summary>⚔ Setup da build <span class="callout-meta">${esc(set.title)}</span></summary>` +
-          '<div class="setup-links">' +
-          set.links.map(([main, ...sup]) =>
-            `<div class="setup-link"><span class="gem-tag main${isNew(main.name) ? ' new' : ''}">${esc(main.name)}</span>` +
-            (sup.length ? '<span class="plus">+</span>' + sup.map(x => tag(x.name)).join('') : '') + '</div>'
-          ).join('') +
-          '</div><div class="setup-legend">Em amarelo: gemas novas neste ato</div>';
+          gemTree(set.links, { isNew }) +
+          '<div class="setup-legend">Em amarelo: gemas novas neste ato</div>';
         header.before(box);
       }
       [...g.skills, ...g.supports, ...g.spirit].forEach(n => seen.add(n));
@@ -185,7 +197,7 @@
             label = 'support';
             let i = -1;
             if (/Tier\s*[3-9]/i.test(r)) {
-              const tier = n => ({ I: 1, II: 2, III: 3, IV: 4, V: 5 }[(n.match(/\s(I{1,3}|IV|V)$/) || [])[1]] || 0);
+              const tier = k => ({ I: 1, II: 2, III: 3, IV: 4, V: 5 }[(splitKey(k)[1].match(/\s(I{1,3}|IV|V)$/) || [])[1]] || 0);
               i = queue.support.reduce((b, n, j) => (tier(n) > (b < 0 ? 0 : tier(queue.support[b])) ? j : b), -1);
             }
             name = i >= 0 ? queue.support.splice(i, 1)[0] : queue.support.shift();
@@ -193,14 +205,15 @@
           else if (/Skill Gem/i.test(r)) { name = queue.skill.shift(); label = 'skill'; }
           else if (/Ascend/i.test(r) && build.ascendancy) name = build.ascendancy;
           if (!name) return;
+          const [host, gemName] = label === 'support' ? splitKey(name) : [null, name];
           const tag = document.createElement('span');
           tag.className = 'build-hint ' + label;
           tag.title = 'Sugestão baseada na sua build importada';
-          tag.textContent = '→ ' + name;
-          if (label === 'support' && supportHost[name]) {
-            const host = document.createElement('small');
-            host.textContent = ' em ' + supportHost[name];
-            tag.appendChild(host);
+          tag.textContent = '→ ' + gemName;
+          if (host) {
+            const h = document.createElement('small');
+            h.textContent = ' em ' + host;
+            tag.appendChild(h);
           }
           chip.after(tag);
         });
@@ -225,9 +238,7 @@
       panel.querySelector('#bpImport').addEventListener('click', openDialog);
       return;
     }
-    const { skills, supports } = currentGems();
-    const gemRow = (n, sup) =>
-      `<label class="bp-gem${sup ? ' sup' : ''}${owned[n] ? ' owned' : ''}"><input type="checkbox" data-gem="${esc(n)}"${owned[n] ? ' checked' : ''}><span>${esc(n)}</span></label>`;
+    const set = currentSet();
     const plan = build.passivePlan;
     const planStatus = !build.tree ? 'Reimporte a build para ativar o plano de passivas.'
       : plan === undefined ? 'Calculando plano de passivas…'
@@ -245,8 +256,7 @@
           </div>
         </div>
         ${build.skillSets.length > 1 ? `<div class="bp-sec"><h3>Conjunto de skills <small>(lista abaixo)</small></h3><select id="bpSet">${build.skillSets.map((s, i) => `<option value="${i}"${i == setIdx ? ' selected' : ''}>${esc(s.title)}</option>`).join('')}</select></div>` : ''}
-        <div class="bp-sec"><h3>Skills <small>— marque as que já tem</small></h3>${skills.map(n => gemRow(n, false)).join('') || '—'}</div>
-        ${supports.length ? `<div class="bp-sec"><h3>Supports</h3>${supports.map(n => gemRow(n, true)).join('')}</div>` : ''}
+        <div class="bp-sec"><h3>Gemas <small>— marque as que já tem</small></h3>${set ? gemTree(set.links, { checkbox: true }) : '—'}</div>
         ${build.weapons.length ? `<div class="bp-sec"><h3>Armas</h3>${build.weapons.map(esc).join('<br>')}</div>` : ''}
         ${build.notes ? `<details class="bp-sec"><summary>Notas da build</summary><pre>${esc(build.notes)}</pre></details>` : ''}
       </div>`;
