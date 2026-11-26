@@ -302,6 +302,8 @@ label.gt-node:has(input) { cursor: pointer; }
   border-bottom-left-radius: 5px;
 }
 .gt-sup:not(:last-child)::after { content: ''; position: absolute; left: 0; top: 50%; bottom: 0; border-left: 1px solid var(--faint); }
+.gt-sub-skill { font-weight: 600; color: var(--gem); }
+.gt-sub-skill span::after { content: ' (skill)'; font-weight: 400; font-size: 0.72rem; color: var(--faint); }
 .gt-node.owned span { text-decoration: line-through; opacity: 0.5; }
 .gt-node.new span { color: var(--perm); }
 

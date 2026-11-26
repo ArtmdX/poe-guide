@@ -128,34 +128,38 @@
     return best || build.skillSets[setIdx] || build.skillSets[0];
   }
 
-  // Uma entrada por skill e uma por (skill, support) — a mesma support em 2 skills conta 2 vezes
+  // Gema principal do link: a primeira skill (o PoB a põe no topo). As demais gemas ficam "encaixadas" nela —
+  // supports e também skills que funcionam como support (ex.: Explosive Grenade dentro do Mortar Cannon).
+  function splitLink(link) {
+    const main = link.find(x => !x.support) || link[0];
+    return { main, children: link.filter(x => x !== main) };
+  }
+
+  // Uma entrada por skill principal e uma por (principal, gema encaixada) — a mesma gema em 2 links conta 2 vezes
   function gemsOf(set) {
     const skills = [], supports = [], spirit = [];
+    const add = (list, k) => { if (!list.includes(k)) list.push(k); };
     set.links.forEach(link => {
-      const main = link.find(x => !x.support);
-      link.forEach(g => {
-        if (g.support) {
-          const k = supKey(main ? main.name : '?', g.name);
-          if (!supports.includes(k)) supports.push(k);
-        } else {
-          const list = SPIRIT_RE.test(g.name) ? spirit : skills;
-          if (!list.includes(g.name)) list.push(g.name);
-        }
-      });
+      const { main, children } = splitLink(link);
+      add(main.support ? supports : SPIRIT_RE.test(main.name) ? spirit : skills, main.name);
+      children.forEach(g => add(g.support ? supports : skills, supKey(main.name, g.name)));
     });
     return { skills, supports, spirit };
   }
 
-  // Árvore skill → supports (usada no painel e no setup de cada ato)
+  // Árvore principal → encaixadas (usada no painel e no setup de cada ato)
   function gemTree(links, { checkbox = false, isNew = () => false } = {}) {
     const box = key => checkbox ? `<input type="checkbox" data-gem="${esc(key)}"${owned[key] ? ' checked' : ''}>` : '';
     const node = (cls, key, label) =>
       `<label class="gt-node ${cls}${owned[key] && checkbox ? ' owned' : ''}${isNew(key) ? ' new' : ''}">${box(key)}<span>${esc(label)}</span></label>`;
     return '<div class="gem-tree">' + links.map(link => {
-      const main = link.find(x => !x.support) || link[0];
-      const sups = link.filter(x => x.support);
+      const { main, children } = splitLink(link);
       return '<div class="gt-link">' + node('gt-skill', main.name, main.name) +
-        (sups.length ? '<div class="gt-supports">' + sups.map(x => node('gt-sup', supKey(main.name, x.name), x.name)).join('') + '</div>' : '') +
+        (children.length
+          ? '<div class="gt-supports">' +
+            children.map(x => node(x.support ? 'gt-sup' : 'gt-sup gt-sub-skill', supKey(main.name, x.name), x.name)).join('') +
+            '</div>'
+          : '') +
         '</div>';
     }).join('') + '</div>';
   }
@@ -205,7 +209,7 @@
           else if (/Skill Gem/i.test(r)) { name = queue.skill.shift(); label = 'skill'; }
           else if (/Ascend/i.test(r) && build.ascendancy) name = build.ascendancy;
           if (!name) return;
-          const [host, gemName] = label === 'support' ? splitKey(name) : [null, name];
+          const [host, gemName] = label === 'skill' || label === 'support' ? splitKey(name) : [null, name];
           const tag = document.createElement('span');
           tag.className = 'build-hint ' + label;
           tag.title = 'Sugestão baseada na sua build importada';
