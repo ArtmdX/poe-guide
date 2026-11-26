@@ -13,8 +13,8 @@
 .bp-card details pre { white-space: pre-wrap; font-size: 0.75rem; max-height: 260px; overflow: auto; color: var(--muted); }
 .bp-actions { display: flex; gap: 0.3rem; margin-top: 0.6rem; }
 .bp-actions button { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
-.build-hint { margin-top: 0.3rem; font-size: 0.8rem; color: var(--gem); }
-.build-hint b { color: var(--text); }
+.build-hint { display: inline-block; margin-left: 0.3rem; padding: 0 0.45rem; border-radius: 4px; font-weight: 700; font-size: 0.85rem; background: var(--gem); color: #14110e; }
+.build-hint.support { background: var(--npc); }
 body.no-build .build-hint { display: none; }
 
 dialog#buildDialog { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 10px; width: min(560px, 92vw); }

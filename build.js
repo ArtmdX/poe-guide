@@ -116,26 +116,19 @@
     const { skills, supports } = currentGems();
     const queue = { skill: skills.filter(n => !owned[n]), support: supports.filter(n => !owned[n]) };
 
-    document.querySelectorAll('.step').forEach(step => {
-      const content = step.querySelector('.step-content');
-      const rewards = [...step.querySelectorAll('.reward')].map(r => r.textContent);
-      const hints = [];
-      rewards.forEach(r => {
-        if (/Spirit Gem/i.test(r)) return;
-        if (/Support/i.test(r)) {
-          const g = queue.support.shift();
-          if (g) hints.push(`Support da build: <b>${esc(g)}</b>`);
-        } else if (/Skill Gem/i.test(r)) {
-          const g = queue.skill.shift();
-          if (g) hints.push(`Corte para a build: <b>${esc(g)}</b>`);
-        }
-        if (/Ascend/i.test(r) && build.ascendancy) hints.push(`Escolha <b>${esc(build.ascendancy)}</b>`);
-      });
-      if (!hints.length) return;
-      const div = document.createElement('div');
-      div.className = 'build-hint';
-      div.innerHTML = '⚔ ' + hints.join(' · ');
-      content.appendChild(div);
+    document.querySelectorAll('.step .reward, .step .gem').forEach(chip => {
+      const r = chip.textContent;
+      let g = null, label = '';
+      if (/Spirit Gem/i.test(r)) return;
+      if (/Support/i.test(r)) { g = queue.support.shift(); label = 'support'; }
+      else if (/Skill Gem/i.test(r)) { g = queue.skill.shift(); label = 'skill'; }
+      else if (/Ascend/i.test(r) && build.ascendancy) g = build.ascendancy;
+      if (!g) return;
+      const tag = document.createElement('span');
+      tag.className = 'build-hint ' + label;
+      tag.title = 'Sugestão baseada na sua build importada';
+      tag.textContent = '→ ' + g;
+      chip.after(tag);
     });
   }
 
