@@ -1,0 +1,25 @@
+#buildPanel { margin-bottom: 1rem; font-size: 0.82rem; }
+#buildPanel:empty { display: none; }
+.bp-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem; }
+.bp-title { color: var(--accent); font-weight: 700; font-size: 0.95rem; }
+.bp-sub { color: var(--muted); margin-bottom: 0.4rem; }
+.bp-sec { margin-top: 0.6rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+.bp-gem { display: flex; gap: 0.35rem; align-items: center; cursor: pointer; padding: 1px 0; }
+.bp-gem input { margin: 0; accent-color: var(--accent); }
+.bp-gem.owned span { text-decoration: line-through; opacity: 0.55; }
+.bp-gem .sup { color: var(--muted); }
+.bp-card select { width: 100%; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; margin-top: 0.2rem; }
+.bp-card details { margin-top: 0.5rem; }
+.bp-card details pre { white-space: pre-wrap; font-size: 0.75rem; max-height: 260px; overflow: auto; color: var(--muted); }
+.bp-actions { display: flex; gap: 0.3rem; margin-top: 0.6rem; }
+.bp-actions button { font-size: 0.75rem; padding: 0.25rem 0.5rem; }
+.build-hint { margin-top: 0.3rem; font-size: 0.8rem; color: var(--gem); }
+.build-hint b { color: var(--text); }
+body.no-build .build-hint { display: none; }
+
+dialog#buildDialog { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 10px; width: min(560px, 92vw); }
+dialog#buildDialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+dialog#buildDialog textarea { width: 100%; height: 140px; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 6px; font-family: monospace; font-size: 0.75rem; }
+dialog#buildDialog .err { color: var(--boss); font-size: 0.85rem; min-height: 1.2em; }
+dialog#buildDialog .row { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.6rem; }
+dialog#buildDialog p { font-size: 0.85rem; color: var(--muted); }

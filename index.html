@@ -1,0 +1,1287 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PoE 2 — Rota Combinada (Guia + GuyThatDies) · Atos 1 a 4</title>
+    <style>
+      :root {
+        --bg: #14110e;
+        --surface: #1e1915;
+        --surface-2: #27211c;
+        --border: #3a3026;
+        --text: #efe6d8;
+        --muted: #b3a48e;
+        --accent: #d89b48;
+        --boss: #e06c60;
+        --npc: #7cc4fa;
+        --loc: #9fd38c;
+        --gem: #c59bf0;
+        --perm: #f2c96b;
+        --opt: #8f8475;
+        --tip: #6fb3b8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
+          sans-serif;
+        line-height: 1.5;
+      }
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: center;
+        justify-content: space-between;
+      }
+      h1 {
+        margin: 0;
+        font-size: 1.15rem;
+        color: var(--accent);
+      }
+      .sub {
+        font-size: 0.85rem;
+        color: var(--muted);
+      }
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      button {
+        background: var(--surface-2);
+        color: var(--text);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        font-size: 0.85rem;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: var(--accent);
+      }
+      button.active {
+        background: var(--accent);
+        color: #14110e;
+        font-weight: 600;
+        border-color: var(--accent);
+      }
+      .progress-wrap {
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-left: 0.5rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 230px 1fr;
+        max-width: 1280px;
+        margin: 0 auto;
+      }
+      aside {
+        border-right: 1px solid var(--border);
+        padding: 1rem;
+        position: sticky;
+        top: 64px;
+        height: calc(100vh - 64px);
+        overflow-y: auto;
+      }
+      aside a {
+        display: block;
+        color: var(--muted);
+        text-decoration: none;
+        padding: 0.3rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.88rem;
+      }
+      aside a:hover {
+        background: var(--surface);
+        color: var(--text);
+      }
+      aside .act-sep {
+        margin-top: 0.8rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--accent);
+        padding: 0.25rem 0.5rem;
+      }
+
+      main {
+        padding: 1.5rem;
+      }
+      .info-box {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--tip);
+        border-radius: 6px;
+        padding: 0.9rem 1.1rem;
+        margin-bottom: 1.5rem;
+      }
+      .info-box summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--tip);
+      }
+      .info-box ul {
+        margin: 0.6rem 0 0;
+        padding-left: 1.2rem;
+        color: var(--muted);
+      }
+      .info-box li {
+        margin-bottom: 0.35rem;
+      }
+
+      .zone-header {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.65rem 1rem;
+        margin: 1.4rem 0 0.5rem;
+        font-weight: 700;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .badge {
+        font-size: 0.72rem;
+        padding: 0.12rem 0.45rem;
+        border-radius: 4px;
+        background: var(--surface-2);
+        color: var(--muted);
+        border: 1px solid var(--border);
+        font-weight: 600;
+      }
+      .lvl {
+        color: var(--accent);
+        font-size: 0.82rem;
+        margin-left: auto;
+      }
+
+      .step {
+        display: flex;
+        gap: 0.7rem;
+        padding: 0.55rem 0.75rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        cursor: pointer;
+        align-items: flex-start;
+      }
+      .step:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .checkbox {
+        width: 18px;
+        height: 18px;
+        border: 1.5px solid var(--muted);
+        border-radius: 4px;
+        margin-top: 2px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        font-size: 0.75rem;
+      }
+      .step.done .checkbox {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #14110e;
+        font-weight: 700;
+      }
+      .step.done .step-content {
+        text-decoration: line-through;
+        opacity: 0.55;
+      }
+
+      .note {
+        margin: 0.35rem 0 0.5rem 2rem;
+        padding: 0.5rem 0.8rem;
+        background: var(--surface-2);
+        border-left: 3px solid var(--accent);
+        border-radius: 0 4px 4px 0;
+        font-size: 0.88rem;
+        color: var(--muted);
+      }
+      .note.gtd {
+        border-left-color: var(--tip);
+      }
+      .note .tag {
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-right: 0.4rem;
+      }
+      .note.gtd .tag {
+        color: var(--tip);
+      }
+
+      .boss {
+        color: var(--boss);
+        font-weight: 600;
+      }
+      .npc {
+        color: var(--npc);
+      }
+      .loc {
+        color: var(--loc);
+      }
+      .gem {
+        color: var(--gem);
+      }
+      .perm {
+        color: var(--perm);
+        font-weight: 600;
+      }
+      .skip {
+        color: var(--opt);
+        font-size: 0.82rem;
+      }
+      .reward {
+        font-size: 0.75rem;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        padding: 0.08rem 0.4rem;
+        border-radius: 4px;
+        margin-left: 0.3rem;
+        color: var(--perm);
+      }
+
+      body.hide-done .step.done {
+        display: none;
+      }
+      body.alt-only .step.is-opt {
+        display: none;
+      }
+      body.hide-gtd .note.gtd {
+        display: none;
+      }
+
+      @media (max-width: 820px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+        aside {
+          display: none;
+        }
+      }
+    </style>
+    <link rel="stylesheet" href="build.css" />
+  </head>
+  <body class="act-page" data-progress-key="poe2-combined-a1-a4-v1">
+    <header>
+      <div>
+        <h1>PoE 2 — Rota Combinada (Guia + GuyThatDies)</h1>
+        <div class="sub">Atos 1 a 4 · Checklist interativo com macetes de rota e checkpoints</div>
+      </div>
+      <div class="controls">
+        <button type="button" id="btnHideDone">Ocultar feitos</button>
+        <button type="button" id="btnAltRun">Apenas obrigatórios</button>
+        <button type="button" id="btnToggleGtd" class="active">Dicas GuyThatDies</button>
+        <button type="button" id="btnBuild">Importar build</button>
+        <button type="button" id="btnReset">Resetar</button>
+        <span class="progress-wrap" id="progressText">0 / 0</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside aria-label="Navegação de zonas">
+        <div id="buildPanel"></div>
+        <div class="act-sep">Ato 1</div>
+        <a href="#a1-riverbank">Riverbank &amp; Clearfell</a>
+        <a href="#a1-grelwood">Grelwood &amp; Red Vale</a>
+        <a href="#a1-cemetery">Grim Tangle &amp; Cemetery</a>
+        <a href="#a1-ogham">Hunting Grounds &amp; Ogham</a>
+
+        <div class="act-sep">Ato 2</div>
+        <a href="#a2-vastiri">Vastiri &amp; Mawdun</a>
+        <a href="#a2-badlands">Halani Gates &amp; Badlands</a>
+        <a href="#a2-keth">Keth &amp; Titans</a>
+        <a href="#a2-deshar">Deshar &amp; Dreadnought</a>
+
+        <div class="act-sep">Ato 3</div>
+        <a href="#a3-marsh">Marsh, Jungle &amp; Crypts</a>
+        <a href="#a3-jiquani">Barrens, Jiquani &amp; Azak Bog</a>
+        <a href="#a3-drowned">Drowned City &amp; Kopec</a>
+        <a href="#a3-utzaal">Utzaal, Aggorat &amp; Black Chambers</a>
+
+        <div class="act-sep">Ato 4</div>
+        <a href="#a4-kingsmarch">Kingsmarch &amp; Ilhas Iniciais</a>
+        <a href="#a4-hinekora">Whakapanu, Prisão &amp; Hinekora</a>
+        <a href="#a4-kedge">Kedge Bay &amp; Journey's End</a>
+        <a href="#a4-finale">Plunder's Point, Arastas &amp; Ngakanu</a>
+      </aside>
+
+      <main>
+        <details class="info-box" open>
+          <summary>Regras Gerais da Rota Combinada (Guia + GuyThatDies)</summary>
+          <ul>
+            <li>
+              <strong>Ritmo vs. XP:</strong>
+              Evite ficar 4+ níveis abaixo da zona para não travar
+              <em>gems</em>
+              e bases de arma; pare em grupos densos/azuis quando necessário.
+            </li>
+            <li>
+              <strong>Sem enrolar na cidade:</strong>
+              Defina o que vai fazer antes de abrir o portal (vender, checar
+              <em>regex</em>
+              , pegar
+              <em>gem</em>
+              ou pontos) e saia rápido.
+            </li>
+            <li>
+              <strong>Fonte do vídeo:</strong>
+              O GuyThatDies roda de
+              <em>Mercenary (Crossbow/Grenades)</em>
+              ; adapte o botão de dano da sua classe, mantendo os truques de mapa,
+              <em>checkpoint</em>
+              e
+              <em>boss</em>
+              .
+            </li>
+          </ul>
+        </details>
+
+        <!-- ==================== ATO 1 ==================== -->
+        <div class="zone-header" id="a1-riverbank">
+          Riverbank &amp; Clearfell
+          <span class="badge">ATO 1</span>
+          <span class="lvl">Lvl 1–3</span>
+        </div>
+        <div class="step" data-step="a1-1">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Fale com
+            <span class="npc">Wounded Man</span>
+            , equipe arma inicial e abra
+            <em>Large Chests</em>
+          </div>
+        </div>
+        <div class="step" data-step="a1-2">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Mate
+            <span class="boss">The Bloated Miller</span>
+            e entre em
+            <span class="loc">Clearfell Encampment</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Puxe o Miller para o canto oposto à entrada: ao matá-lo ali, você passa direto pela obstrução para a cidade.
+        </div>
+        <div class="step" data-step="a1-3">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="npc">Renly</span>
+            , pegue
+            <span class="gem">Skill Gem Lv1</span>
+            ; avance por
+            <span class="loc">Clearfell</span>
+            e mate
+            <span class="boss">Beira of the Rotten Pack</span>
+            <span class="reward">+10% Cold Res</span>
+          </div>
+        </div>
+        <div class="step is-opt" data-step="a1-4">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            <span class="skip">(Opt)</span>
+            <span class="loc">Mud Burrow</span>
+            →
+            <span class="boss">The Devourer</span>
+            <span class="reward">Skill Gem Lv2</span>
+            /
+            <em>Abandoned Stash</em>
+            <span class="reward">Skill Gem Lv1</span>
+          </div>
+        </div>
+
+        <div class="zone-header" id="a1-grelwood">
+          The Grelwood &amp; Red Vale
+          <span class="badge">WAYPOINT</span>
+          <span class="lvl">Lvl 3–6</span>
+        </div>
+        <div class="step" data-step="a1-5">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Grelwood</span>
+            , fale com
+            <span class="npc">Una</span>
+            , pegue
+            <em>Waypoint</em>
+            e toque as entradas de
+            <span class="loc">Grim Tangle</span>
+            e
+            <span class="loc">The Red Vale</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Siga as
+          <strong>raízes brilhantes</strong>
+          para a
+          <em>Tree of Souls</em>
+          e suba o
+          <strong>rio</strong>
+          até o
+          <em>Red Vale</em>
+          . Clique em todo
+          <em>Refined Arm</em>
+          para pegar bases melhores e use
+          <em>Transmute</em>
+          nas boas.
+        </div>
+        <div class="step is-opt" data-step="a1-6">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            <span class="skip">(Opt)</span>
+            Mate
+            <span class="boss">Gerung</span>
+            <span class="reward">Skill Gem Lv2</span>
+            /
+            <em>Hut with Cauldron</em>
+            →
+            <span class="boss">Areagne</span>
+            <span class="reward">Support Gem Lv1</span>
+          </div>
+        </div>
+        <div class="step" data-step="a1-7">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Red Vale</span>
+            , ative 3
+            <em>Obelisks of Rust</em>
+            , mate
+            <span class="boss">The Rust King</span>
+            <span class="reward">Skill Gem Lv3</span>
+            , pegue
+            <em>Runed Spikes</em>
+            com
+            <span class="npc">Renly</span>
+            e ative 3
+            <em>Runic Seals</em>
+            no
+            <span class="loc">Grelwood</span>
+          </div>
+        </div>
+
+        <div class="zone-header" id="a1-cemetery">
+          Grim Tangle &amp; Cemetery of the Eternals
+          <span class="badge">WAYPOINT</span>
+          <span class="lvl">Lvl 6–9</span>
+        </div>
+        <div class="step" data-step="a1-8">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Grim Tangle</span>
+            , fale com
+            <span class="npc">Una</span>
+            (se quiser, mate
+            <span class="boss">Ervig</span>
+            <span class="reward">Support Gem</span>
+            ) e siga para
+            <span class="loc">Cemetery of the Eternals</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Após falar com
+          <em>Una</em>
+          , use o
+          <em>checkpoint</em>
+          ao lado para passar direto pela obstrução. Evite pisar em zumbis fungosos ao morrer (explodem).
+        </div>
+        <div class="step" data-step="a1-9">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Fale com
+            <span class="npc">Lachlann</span>
+            ; faça
+            <span class="loc">Mausoleum of the Praetor</span>
+            (
+            <span class="boss">Draven</span>
+            ) e
+            <span class="loc">Tomb of the Consort</span>
+            (
+            <span class="boss">Asinia</span>
+            )
+          </div>
+        </div>
+        <div class="step is-opt" data-step="a1-10">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            <span class="skip">(Opt)</span>
+            Sarcófago do anel (
+            <em>Transmute</em>
+            buscando dano) /
+            <em>Forgotten Riches</em>
+            /
+            <em>Haunted Treasure</em>
+          </div>
+        </div>
+        <div class="step" data-step="a1-11">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Abra o portão, mate
+            <span class="boss">Lachlann</span>
+            <span class="reward">Skill Gem Lv3</span>
+            e pegue o
+            <em>Waypoint</em>
+            do
+            <span class="loc">Hunting Grounds</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          No
+          <em>Lachlann</em>
+          , use
+          <em>respawn at checkpoint</em>
+          após abrir o portão para acelerar o
+          <em>spawn</em>
+          .
+        </div>
+
+        <div class="zone-header" id="a1-ogham">
+          Hunting Grounds, Freythorn &amp; Ogham
+          <span class="badge">ATO 1 BOSS</span>
+          <span class="lvl">Lvl 10–14</span>
+        </div>
+        <div class="step" data-step="a1-12">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Hunting Grounds</span>
+            , mate
+            <span class="boss">The Crowbell</span>
+            <span class="reward">+2 Skill Points</span>
+            , pegue
+            <em>WPs</em>
+            de
+            <span class="loc">Freythorn</span>
+            e
+            <span class="loc">Ogham Farmlands</span>
+            e faça 1 ritual pequeno
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          O rastro de gafanhotos de um ritual aponta para
+          <em>Freythorn</em>
+          ; trilhas de sangue/placas indicam
+          <em>Crowbell</em>
+          e
+          <em>Ogham Farmlands</em>
+          .
+        </div>
+        <div class="step" data-step="a1-13">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Freythorn</span>
+            , ative 3 altares menores e mate
+            <span class="boss">The King in the Mists</span>
+            <span class="reward">+30 Spirit · Spirit Gem Lv4</span>
+            ; pegue
+            <em>Charm</em>
+            com
+            <span class="npc">Finn</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Siga os fios de fumaça do altar central para achar os 3 rituais menores sem varrer o mapa inteiro.
+        </div>
+        <div class="step" data-step="a1-14">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Ogham Farmlands</span>
+            , pegue
+            <em>Una's Lute</em>
+            <span class="reward">+2 Skill Points</span>
+            ; em
+            <span class="loc">Ogham Village</span>
+            , pegue
+            <em>Smithing Tools</em>
+            + baú (
+            <em>Blank Rune</em>
+            &amp;
+            <em>Artificer's Orb</em>
+            ), mate
+            <span class="boss">The Executioner</span>
+            e puxe a alavanca
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Siga a estrada de paralelepípedos direto até a casa da forja.
+        </div>
+        <div class="step" data-step="a1-15">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Ogham Manor</span>
+            , mate
+            <span class="boss">Candlemass</span>
+            <span class="reward">+20 Max Life</span>
+            e derrote o chefe do ato
+            <span class="boss">Geonor</span>
+            (idealmente Nv. 13–14)
+          </div>
+        </div>
+
+        <!-- ==================== ATO 2 ==================== -->
+        <div class="zone-header" id="a2-vastiri">
+          Vastiri Outskirts &amp; Mawdun
+          <span class="badge">ATO 2</span>
+          <span class="lvl">Lvl 14–17</span>
+        </div>
+        <div class="step" data-step="a2-1">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Mate
+            <span class="boss">Rathbreaker</span>
+            , volte ao início para falar com
+            <span class="npc">Zarka</span>
+            <span class="reward">Uncut Skill Gem Lv5</span>
+            , entre na
+            <span class="loc">Caravan</span>
+            e toque
+            <span class="loc">Halani Gates</span>
+            no mapa do deserto
+          </div>
+        </div>
+        <div class="step" data-step="a2-2">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Vá a
+            <span class="loc">Mawdun Quarry</span>
+            →
+            <span class="loc">Mawdun Mine</span>
+            , mate
+            <span class="boss">Rudja</span>
+            <span class="reward">Uncut Skill Gem Lv6</span>
+            e solte
+            <span class="npc">Risu</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Na mina, siga os
+          <strong>trilhos de trem</strong>
+          conectados para pular becos sem saída.
+        </div>
+
+        <div class="zone-header" id="a2-badlands">
+          Traitor's Passage, Halani Gates &amp; Badlands
+          <span class="lvl">Lvl 17–21</span>
+        </div>
+        <div class="step" data-step="a2-3">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Traitor's Passage</span>
+            , abra o selo; nos
+            <span class="loc">Halani Gates</span>
+            , espere
+            <span class="npc">Asala</span>
+            nas pontes e mate
+            <span class="boss">Jamanra</span>
+            (1º encontro)
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Pergaminhos Maraketh indicam o ramo de
+          <em>Balbala</em>
+          (opcional; costuma-se pegar
+          <em>Djinn Barya</em>
+          nos abutres de
+          <em>Deshar</em>
+          ). Não corra à frente da
+          <em>Asala</em>
+          nas pontes.
+        </div>
+        <div class="step" data-step="a2-4">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Faça
+            <span class="loc">Mastodon Badlands</span>
+            →
+            <span class="loc">The Bone Pits</span>
+            antes de
+            <em>Keth</em>
+            ; colete
+            <em>Sun Clan Relic</em>
+            (hienas) e mate
+            <span class="boss">Iktab &amp; Ekbab</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Evite resetar
+          <em>checkpoint</em>
+          à toa durante a busca da relíquia das hienas para não bagunçar o
+          <em>spawn</em>
+          .
+        </div>
+
+        <div class="zone-header" id="a2-keth">
+          Keth &amp; Valley of the Titans
+          <span class="lvl">Lvl 22–26</span>
+        </div>
+        <div class="step" data-step="a2-5">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Keth</span>
+            , pegue
+            <em>Kabala Clan Relic</em>
+            (cobras) e mate
+            <span class="boss">Kabala</span>
+            <span class="reward">+2 Skill Points</span>
+            ; avance por
+            <span class="loc">Lost City</span>
+            e
+            <span class="loc">Buried Shrines</span>
+            <span class="reward">Resist Ring + Lesser Jeweller's</span>
+          </div>
+        </div>
+        <div class="step" data-step="a2-6">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Heart of Keth</span>
+            , mate
+            <span class="boss">Azarian</span>
+            e fale com a
+            <em>Water Goddess</em>
+          </div>
+        </div>
+        <div class="step" data-step="a2-7">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Valley of the Titans</span>
+            , ative 3 selos, encaixe relíquias
+            <span class="reward">+1 Charm Slot</span>
+            e mate
+            <span class="boss">Zalmarath</span>
+            no
+            <span class="loc">Titan Grotto</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          As cabeças gigantes de Titã revelam a direção de cada selo logo na entrada.
+        </div>
+
+        <div class="zone-header" id="a2-deshar">
+          Deshar, Ascensão &amp; Dreadnought
+          <span class="badge">ATO 2 BOSS</span>
+          <span class="lvl">Lvl 26–29</span>
+        </div>
+        <div class="step" data-step="a2-8">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Toque o chifre na caravana; em
+            <span class="loc">Deshar</span>
+            , pegue a carta
+            <span class="reward">+2 Skill Points</span>
+            com
+            <span class="npc">Shambrin</span>
+            , pegue
+            <span class="reward">+10% Lightning Res</span>
+            nas
+            <em>Sisters of Garukhan</em>
+            e mate
+            <span class="boss">Tor Gul</span>
+          </div>
+        </div>
+        <div class="step" data-step="a2-9">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Complete o
+            <span class="loc">Trial of the Sekhemas</span>
+            <span class="reward">1ª Ascendência</span>
+            e derrote
+            <span class="boss">Jamanra, the Abomination</span>
+            no
+            <span class="loc">The Dreadnought</span>
+          </div>
+        </div>
+
+        <!-- ==================== ATO 3 ==================== -->
+        <div class="zone-header" id="a3-marsh">
+          Sandswept Marsh, Jungle Ruins &amp; Venom Crypts
+          <span class="badge">ATO 3</span>
+          <span class="lvl">Lvl 30–35</span>
+        </div>
+        <div class="step" data-step="a3-1">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Passe por
+            <span class="loc">Sandswept Marsh</span>
+            (
+            <span class="boss">Rootdredge</span>
+            <span class="reward">Skill Gem Lv9</span>
+            ), chegue a
+            <span class="loc">Ziggurat Encampment</span>
+            e atualize
+            <em>flasks</em>
+            com
+            <span class="npc">Servi</span>
+          </div>
+        </div>
+        <div class="step" data-step="a3-2">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Jungle Ruins</span>
+            , mate
+            <span class="boss">Mighty Silverfist</span>
+            <span class="reward">+2 Skill Points</span>
+            , pegue o cinto com
+            <span class="npc">Servi</span>
+            e faça
+            <span class="loc">The Venom Crypts</span>
+            (
+            <em>Orok Poison</em>
+            →
+            <span class="npc">Servi</span>
+            )
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Fale com os exploradores nos acampamentos da selva para marcar o próximo destino no minimapa.
+        </div>
+
+        <div class="zone-header" id="a3-jiquani">
+          Infested Barrens, Jiquani &amp; Azak Bog
+          <span class="lvl">Lvl 31–35</span>
+        </div>
+        <div class="step" data-step="a3-3">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Pegue
+            <em>WP</em>
+            em
+            <span class="loc">Infested Barrens</span>
+            , passe por
+            <span class="loc">Chimeral Wetlands</span>
+            (pegue
+            <em>WP</em>
+            do
+            <em>Temple of Chaos</em>
+            se quiser) e mate
+            <span class="boss">Xyclucian</span>
+          </div>
+        </div>
+        <div class="step" data-step="a3-4">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Jiquani's Machinarium</span>
+            e
+            <span class="loc">Sanctum</span>
+            , pegue
+            <em>Soul Cores</em>
+            , mate
+            <span class="boss">Blackjaw</span>
+            <span class="reward">+10% Fire Res</span>
+            e
+            <span class="boss">Zicoatl</span>
+            ; leve o
+            <em>Large Soul Core</em>
+            ao
+            <span class="loc">Jungle Ruins</span>
+            para abrir
+            <span class="loc">The Matlan Waterways</span>
+          </div>
+        </div>
+        <div class="step" data-step="a3-5">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Pelo
+            <span class="loc">Waterways</span>
+            , entre em
+            <span class="loc">Azak Bog</span>
+            e mate
+            <span class="boss">Ignagduk</span>
+            <span class="reward">+30 Spirit · Spirit Gem Lv10</span>
+            + lança para
+            <span class="npc">Servi</span>
+            <span class="reward">Charm</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Se estiver atrasado no nível, os rituais de
+          <em>Flameskin</em>
+          no
+          <em>Azak Bog</em>
+          com
+          <em>reset</em>
+          de
+          <em>checkpoint</em>
+          farmam XP rápido.
+        </div>
+
+        <div class="zone-header" id="a3-drowned">
+          The Drowned City &amp; Temple of Kopec
+          <span class="lvl">Lvl 35–37</span>
+        </div>
+        <div class="step" data-step="a3-6">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">The Drowned City</span>
+            , pegue
+            <em>WPs</em>
+            de
+            <span class="loc">The Molten Vault</span>
+            (mate
+            <span class="boss">Mektul</span>
+            e fale com
+            <span class="npc">Oswald</span>
+            ) e
+            <span class="loc">Apex of Filth</span>
+            (mate
+            <span class="boss">Queen of Filth</span>
+            )
+          </div>
+        </div>
+        <div class="step" data-step="a3-7">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            No
+            <span class="loc">Temple of Kopec</span>
+            , mate
+            <span class="boss">Ketzuli</span>
+            , fale com
+            <span class="npc">Alva</span>
+            e siga para
+            <span class="loc">Utzaal</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          No 1º andar de
+          <em>Kopec</em>
+          , o canto oposto ao sol central tem 50% de chance de ter a escada. Após o chefe, fale com
+          <em>Alva</em>
+          e já abra o portal enquanto ela chama a passagem.
+        </div>
+
+        <div class="zone-header" id="a3-utzaal">
+          Utzaal, Aggorat &amp; Black Chambers
+          <span class="badge">ATO 3 BOSS</span>
+          <span class="lvl">Lvl 38–42</span>
+        </div>
+        <div class="step" data-step="a3-8">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Utzaal</span>
+            , mate
+            <em>Vaal Goliaths</em>
+            pelo
+            <em>Sacrificial Heart</em>
+            e derrote
+            <span class="boss">Viper Napuatzi</span>
+          </div>
+        </div>
+        <div class="step" data-step="a3-9">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Aggorat</span>
+            , use o coração no altar
+            <span class="reward">+2 Skill Points</span>
+            e mate
+            <span class="boss">Doryani</span>
+            em
+            <span class="loc">The Black Chambers</span>
+          </div>
+        </div>
+
+        <!-- ==================== ATO 4 ==================== -->
+        <div class="zone-header" id="a4-kingsmarch">
+          Kingsmarch, Kedge Bay &amp; Isle of Kin
+          <span class="badge">ATO 4</span>
+          <span class="lvl">Lvl 42–46</span>
+        </div>
+        <div class="step" data-step="a4-1">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Kingsmarch</span>
+            , fale com
+            <span class="npc">Doryani</span>
+            ,
+            <span class="npc">Alva</span>
+            ,
+            <span class="npc">Tujen</span>
+            ,
+            <span class="npc">Farrow</span>
+            (
+            <em>Runeseeker</em>
+            ) e
+            <span class="npc">Makoru</span>
+          </div>
+        </div>
+        <div class="step" data-step="a4-2">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Kedge Bay</span>
+            →
+            <span class="loc">Journey's End</span>
+            , pegue
+            <em>Verisium</em>
+            (
+            <span class="boss">Captain Harlin</span>
+            →
+            <span class="npc">Dannig</span>
+            ) e mate
+            <span class="boss">Omniphobia</span>
+            <span class="reward">+2 Skill Points</span>
+          </div>
+        </div>
+        <div class="step" data-step="a4-3">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Isle of Kin</span>
+            →
+            <span class="loc">Volcanic Warrens</span>
+            , mate
+            <span class="boss">Mimok</span>
+            <span class="reward">Tier 4 Support</span>
+            ,
+            <span class="boss">Magma Twins</span>
+            <span class="reward">Ruby/Topaz Ring</span>
+            e
+            <span class="boss">Krutog</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Nos
+          <em>Magma Twins</em>
+          , a ordem de quem morre por último define o anel: fogo por último =
+          <em>Ruby Ring</em>
+          ; raio por último =
+          <em>Topaz Ring</em>
+          .
+        </div>
+
+        <div class="zone-header" id="a4-hinekora">
+          Whakapanu, Abandoned Prison &amp; Eye of Hinekora
+          <span class="lvl">Lvl 42–48</span>
+        </div>
+        <div class="step" data-step="a4-4">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Whakapanu</span>
+            →
+            <span class="loc">Singing Caverns</span>
+            , mate
+            <span class="boss">Diamora</span>
+            (e pegue
+            <em>Humming Pearl</em>
+            se quiser); em
+            <span class="loc">Abandoned Prison</span>
+            →
+            <span class="loc">Solitary Confinement</span>
+            , mate
+            <span class="boss">Forael</span>
+            <span class="reward">Flask choice</span>
+            e
+            <span class="boss">The Prisoner</span>
+          </div>
+        </div>
+        <div class="step" data-step="a4-5">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Eye of Hinekora</span>
+            , fale com
+            <span class="npc">Matiki</span>
+            , faça os 3 testes e fale com
+            <span class="npc">Navali</span>
+            <span class="reward">+5% Max Mana</span>
+          </div>
+        </div>
+        <div class="step" data-step="a4-6">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Halls of the Dead</span>
+            , pegue
+            <em>Tattoo</em>
+            <span class="reward">+5% Res</span>
+            , mate
+            <span class="boss">Yama the White</span>
+            e pegue
+            <span class="reward">+2 Skill Points</span>
+            em
+            <span class="loc">Trial of Ancestors</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Em ilhas com
+          <em>shrine</em>
+          antes do chefe, você pode ir até o chefe, voltar no
+          <em>checkpoint</em>
+          para pegar um
+          <em>shrine</em>
+          de dano e puxar a luta com ele.
+        </div>
+
+        <div class="zone-header" id="a4-finale">
+          Plunder's Point, Arastas &amp; Ngakanu
+          <span class="badge">ATO 4 BOSS</span>
+          <span class="lvl">Lvl 49–52</span>
+        </div>
+        <div class="step" data-step="a4-7">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Entregue os 4
+            <em>Torn Maps</em>
+            a
+            <span class="npc">Makoru</span>
+            e faça
+            <span class="loc">Plunder's Point</span>
+            →
+            <span class="loc">Deserted Post</span>
+            (
+            <span class="npc">Farrow</span>
+            ) para liberar o
+            <em>Verisium Anvil</em>
+          </div>
+        </div>
+        <div class="step" data-step="a4-8">
+          <div class="checkbox"></div>
+          <div class="step-content">
+            Em
+            <span class="loc">Arastas</span>
+            →
+            <span class="loc">The Excavation</span>
+            , mate
+            <span class="boss">Torvian</span>
+            e
+            <span class="boss">Benedictus</span>
+            ; siga para
+            <span class="loc">Ngakanu</span>
+            →
+            <span class="loc">Heart of the Tribe</span>
+            e derrote
+            <span class="boss">Tavakai</span>
+          </div>
+        </div>
+        <div class="note gtd">
+          <span class="tag">GuyThatDies</span>
+          Em
+          <em>Arastas</em>
+          , pegue os sinos de
+          <em>Exalts/Regals</em>
+          e deixe o chefe acertar os sacerdotes que o bufam.
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const STORAGE_KEY = document.body.dataset.progressKey;
+      const steps = [...document.querySelectorAll('.step')];
+      const progressText = document.getElementById('progressText');
+
+      function loadState() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+        } catch {
+          return {};
+        }
+      }
+      function saveState(state) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {}
+      }
+
+      let state = loadState();
+
+      function render() {
+        let doneCount = 0;
+        steps.forEach(el => {
+          const id = el.dataset.step;
+          const isDone = Boolean(state[id]);
+          el.classList.toggle('done', isDone);
+          el.querySelector('.checkbox').textContent = isDone ? '✓' : '';
+          if (isDone) doneCount++;
+        });
+        progressText.textContent = `${doneCount} / ${steps.length} concluídos`;
+      }
+
+      steps.forEach(el => {
+        el.addEventListener('click', () => {
+          const id = el.dataset.step;
+          state[id] = !state[id];
+          saveState(state);
+          render();
+        });
+      });
+
+      const btnHideDone = document.getElementById('btnHideDone');
+      const btnAltRun = document.getElementById('btnAltRun');
+      const btnToggleGtd = document.getElementById('btnToggleGtd');
+      const btnReset = document.getElementById('btnReset');
+
+      btnHideDone.addEventListener('click', () => {
+        document.body.classList.toggle('hide-done');
+        btnHideDone.classList.toggle('active');
+      });
+      btnAltRun.addEventListener('click', () => {
+        document.body.classList.toggle('alt-only');
+        btnAltRun.classList.toggle('active');
+      });
+      btnToggleGtd.addEventListener('click', () => {
+        document.body.classList.toggle('hide-gtd');
+        btnToggleGtd.classList.toggle('active');
+      });
+      btnReset.addEventListener('click', () => {
+        state = {};
+        saveState(state);
+        render();
+      });
+
+      render();
+    </script>
+    <script src="build.js"></script>
+  </body>
+</html>
