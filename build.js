@@ -109,27 +109,83 @@
   // ---------- Dicas nos passos ----------
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
+  const SPIRIT_RE = /^(Herald|Tame Beast|Wind Dancer|Archmage|Grace|Purity|Determination|Discipline|Raging Spirits|Trinity|Blasphemy|Berserk|Combat Frenzy|Ghost Dance|Charge Infusion|Cast on)/i;
+  const ACT_START = { 1: 'a1-riverbank', 2: 'a2-vastiri', 3: 'a3-marsh', 4: 'a4-kingsmarch' };
+
+  // Conjunto de skills para cada ato: usa títulos tipo "Ato 2" / "Act 3" / "Ato 4+"; senão, o conjunto escolhido no painel.
+  function setForAct(act) {
+    let best = null, bestN = -1;
+    build.skillSets.forEach(s => {
+      const n = +((s.title || '').match(/(\d+)/) || [])[1];
+      if (n && n <= act && n > bestN) { best = s; bestN = n; }
+    });
+    return best || build.skillSets[setIdx] || build.skillSets[0];
+  }
+
+  function gemsOf(set) {
+    const skills = [], supports = [], spirit = [];
+    set.links.forEach(link => link.forEach(g => {
+      const list = g.support ? supports : SPIRIT_RE.test(g.name) ? spirit : skills;
+      if (!list.includes(g.name)) list.push(g.name);
+    }));
+    return { skills, supports, spirit };
+  }
+
   function renderHints() {
-    document.querySelectorAll('.build-hint').forEach(e => e.remove());
+    document.querySelectorAll('.build-hint, .build-setup').forEach(e => e.remove());
     document.body.classList.toggle('no-build', !build);
     if (!build) return;
-    const { skills, supports } = currentGems();
-    const queue = { skill: skills.filter(n => !owned[n]), support: supports.filter(n => !owned[n]) };
 
-    document.querySelectorAll('.step .reward, .step .gem').forEach(chip => {
-      const r = chip.textContent;
-      let g = null, label = '';
-      if (/Spirit Gem/i.test(r)) return;
-      if (/Support/i.test(r)) { g = queue.support.shift(); label = 'support'; }
-      else if (/Skill Gem/i.test(r)) { g = queue.skill.shift(); label = 'skill'; }
-      else if (/Ascend/i.test(r) && build.ascendancy) g = build.ascendancy;
-      if (!g) return;
-      const tag = document.createElement('span');
-      tag.className = 'build-hint ' + label;
-      tag.title = 'Sugestão baseada na sua build importada';
-      tag.textContent = '→ ' + g;
-      chip.after(tag);
-    });
+    const seen = new Set();
+    const queue = { skill: [], support: [], spirit: [] };
+    for (let act = 1; act <= 4; act++) {
+      const set = setForAct(act);
+      const g = gemsOf(set);
+      // gemas novas deste ato entram no fim da fila (sobras do ato anterior vêm antes)
+      [['skill', g.skills], ['support', g.supports], ['spirit', g.spirit]].forEach(([k, list]) =>
+        list.forEach(n => { if (!seen.has(n) && !owned[n]) queue[k].push(n); }));
+      const isNew = n => !seen.has(n);
+
+      // Quadro de setup no início do ato
+      const header = document.getElementById(ACT_START[act]);
+      if (header) {
+        const box = document.createElement('details');
+        box.className = 'build-setup info-box';
+        box.innerHTML = `<summary>⚔ Setup da build — ${esc(set.title)}</summary>` +
+          set.links.map(link => {
+            const [main, ...sup] = link;
+            const tag = n => `<span class="${isNew(n) ? 'bs-new' : ''}">${esc(n)}</span>`;
+            return `<div class="bs-link"><b>${tag(main.name)}</b>${sup.length ? ' + ' + sup.map(x => tag(x.name)).join(', ') : ''}</div>`;
+          }).join('') + '<div class="bs-legend"><span class="bs-new">destacado</span> = novo neste ato</div>';
+        header.before(box);
+      }
+      [...g.skills, ...g.supports, ...g.spirit].forEach(n => seen.add(n));
+
+      document.querySelectorAll(`.step[data-step^="a${act}-"]`).forEach(step => {
+        step.querySelectorAll('.reward, .gem').forEach(chip => {
+          const r = chip.textContent;
+          let name = null, label = '';
+          if (/Spirit Gem/i.test(r)) { name = queue.spirit.shift(); label = 'spirit'; }
+          else if (/Support/i.test(r)) {
+            label = 'support';
+            let i = -1;
+            if (/Tier\s*[3-9]/i.test(r)) {
+              const tier = n => ({ I: 1, II: 2, III: 3, IV: 4, V: 5 }[(n.match(/\s(I{1,3}|IV|V)$/) || [])[1]] || 0);
+              i = queue.support.reduce((b, n, j) => (tier(n) > (b < 0 ? 0 : tier(queue.support[b])) ? j : b), -1);
+            }
+            name = i >= 0 ? queue.support.splice(i, 1)[0] : queue.support.shift();
+          }
+          else if (/Skill Gem/i.test(r)) { name = queue.skill.shift(); label = 'skill'; }
+          else if (/Ascend/i.test(r) && build.ascendancy) name = build.ascendancy;
+          if (!name) return;
+          const tag = document.createElement('span');
+          tag.className = 'build-hint ' + label;
+          tag.title = 'Sugestão baseada na sua build importada';
+          tag.textContent = '→ ' + name;
+          chip.after(tag);
+        });
+      });
+    }
   }
 
   // ---------- Painel lateral ----------

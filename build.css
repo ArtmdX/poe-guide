@@ -23,3 +23,9 @@ dialog#buildDialog textarea { width: 100%; height: 140px; background: var(--bg);
 dialog#buildDialog .err { color: var(--boss); font-size: 0.85rem; min-height: 1.2em; }
 dialog#buildDialog .row { display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 0.6rem; }
 dialog#buildDialog p { font-size: 0.85rem; color: var(--muted); }
+.build-hint.spirit { background: var(--perm); }
+.build-setup { margin: 1rem 0 0.5rem; }
+.build-setup summary { color: var(--gem); }
+.bs-link { font-size: 0.85rem; padding: 2px 0; }
+.bs-new { color: var(--perm); font-weight: 700; }
+.bs-legend { margin-top: 0.4rem; font-size: 0.75rem; color: var(--muted); }
