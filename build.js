@@ -3,6 +3,7 @@
   const BUILD_KEY = 'poe2-build-v1';
   const OWNED_KEY = 'poe2-build-owned-v1';
   const panel = document.getElementById('buildPanel');
+  const pill = document.getElementById('buildPill');
 
   const store = {
     get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } },
@@ -161,13 +162,16 @@
       const header = document.getElementById(ACT_START[act]);
       if (header) {
         const box = document.createElement('details');
-        box.className = 'build-setup info-box';
-        box.innerHTML = `<summary>⚔ Setup da build — ${esc(set.title)}</summary>` +
-          set.links.map(link => {
-            const [main, ...sup] = link;
-            const tag = n => `<span class="${isNew(n) ? 'bs-new' : ''}">${esc(n)}</span>`;
-            return `<div class="bs-link"><b>${tag(main.name)}</b>${sup.length ? ' + ' + sup.map(x => tag(x.name)).join(', ') : ''}</div>`;
-          }).join('') + '<div class="bs-legend"><span class="bs-new">destacado</span> = novo neste ato</div>';
+        box.className = 'callout callout-setup build-setup';
+        const tag = n => `<span class="gem-tag${isNew(n) ? ' new' : ''}">${esc(n)}</span>`;
+        box.innerHTML =
+          `<summary>⚔ Setup da build <span class="callout-meta">${esc(set.title)}</span></summary>` +
+          '<div class="setup-links">' +
+          set.links.map(([main, ...sup]) =>
+            `<div class="setup-link"><span class="gem-tag main${isNew(main.name) ? ' new' : ''}">${esc(main.name)}</span>` +
+            (sup.length ? '<span class="plus">+</span>' + sup.map(x => tag(x.name)).join('') : '') + '</div>'
+          ).join('') +
+          '</div><div class="setup-legend">Em amarelo: gemas novas neste ato</div>';
         header.before(box);
       }
       [...g.skills, ...g.supports, ...g.spirit].forEach(n => seen.add(n));
@@ -205,22 +209,46 @@
   }
 
   // ---------- Painel lateral ----------
+  function renderPill() {
+    pill.classList.toggle('has-build', !!build);
+    pill.querySelector('.pill-label').textContent = build ? (build.ascendancy || build.className) : 'Importar build';
+  }
+
   function renderPanel() {
-    if (!build) { panel.innerHTML = ''; return; }
+    renderPill();
+    if (!build) {
+      panel.innerHTML = `
+        <div class="bp-empty">
+          <p>Importe sua build do <b>Path of Building 2</b> para ver no guia qual gema cortar em cada recompensa, o setup de cada ato e quando gastar os pontos de passiva.</p>
+          <button type="button" class="btn primary" id="bpImport">Importar build</button>
+        </div>`;
+      panel.querySelector('#bpImport').addEventListener('click', openDialog);
+      return;
+    }
     const { skills, supports } = currentGems();
     const gemRow = (n, sup) =>
-      `<label class="bp-gem${owned[n] ? ' owned' : ''}"><input type="checkbox" data-gem="${esc(n)}"${owned[n] ? ' checked' : ''}><span class="${sup ? 'sup' : ''}">${esc(n)}</span></label>`;
+      `<label class="bp-gem${sup ? ' sup' : ''}${owned[n] ? ' owned' : ''}"><input type="checkbox" data-gem="${esc(n)}"${owned[n] ? ' checked' : ''}><span>${esc(n)}</span></label>`;
+    const plan = build.passivePlan;
+    const planStatus = !build.tree ? 'Reimporte a build para ativar o plano de passivas.'
+      : plan === undefined ? 'Calculando plano de passivas…'
+      : plan ? `Plano de passivas: ${plan.main.length} notables na ordem de caminho.`
+      : 'Não consegui calcular o plano de passivas.';
     panel.innerHTML = `
-      <div class="bp-card">
-        <div class="bp-title">${esc(build.ascendancy || build.className)}</div>
-        <div class="bp-sub">${esc(build.className)}${build.level ? ' · Lvl ' + esc(build.level) : ''}</div>
-        ${build.skillSets.length > 1 ? `<select id="bpSet">${build.skillSets.map((s, i) => `<option value="${i}"${i == setIdx ? ' selected' : ''}>${esc(s.title)}</option>`).join('')}</select>` : ''}
-        ${build.weapons.length ? `<div class="bp-sec">Armas</div>${build.weapons.map(esc).join('<br>')}` : ''}
-        <div class="bp-sec">Skills (marque as que já tem)</div>
-        ${skills.map(n => gemRow(n, false)).join('') || '—'}
-        ${supports.length ? `<div class="bp-sec">Supports</div>${supports.map(n => gemRow(n, true)).join('')}` : ''}
-        ${build.notes ? `<details><summary>Notas da build</summary><pre>${esc(build.notes)}</pre></details>` : ''}
-        <div class="bp-actions"><button type="button" id="bpChange">Trocar</button><button type="button" id="bpRemove">Remover</button></div>
+      <div class="bp">
+        <div class="bp-head">
+          <div class="bp-title">${esc(build.ascendancy || build.className)}</div>
+          <div class="bp-sub">${esc(build.className)}${build.level ? ' · Lvl ' + esc(build.level) : ''}</div>
+          <div class="bp-status">${planStatus}</div>
+          <div class="bp-actions">
+            <button type="button" class="btn sm" id="bpChange">Trocar build</button>
+            <button type="button" class="btn sm ghost danger" id="bpRemove">Remover</button>
+          </div>
+        </div>
+        ${build.skillSets.length > 1 ? `<div class="bp-sec"><h3>Conjunto de skills <small>(lista abaixo)</small></h3><select id="bpSet">${build.skillSets.map((s, i) => `<option value="${i}"${i == setIdx ? ' selected' : ''}>${esc(s.title)}</option>`).join('')}</select></div>` : ''}
+        <div class="bp-sec"><h3>Skills <small>— marque as que já tem</small></h3>${skills.map(n => gemRow(n, false)).join('') || '—'}</div>
+        ${supports.length ? `<div class="bp-sec"><h3>Supports</h3>${supports.map(n => gemRow(n, true)).join('')}</div>` : ''}
+        ${build.weapons.length ? `<div class="bp-sec"><h3>Armas</h3>${build.weapons.map(esc).join('<br>')}</div>` : ''}
+        ${build.notes ? `<details class="bp-sec"><summary>Notas da build</summary><pre>${esc(build.notes)}</pre></details>` : ''}
       </div>`;
     panel.querySelectorAll('input[data-gem]').forEach(cb => cb.addEventListener('change', () => {
       owned[cb.dataset.gem] = cb.checked;
@@ -234,6 +262,7 @@
     });
     panel.querySelector('#bpChange').addEventListener('click', openDialog);
     panel.querySelector('#bpRemove').addEventListener('click', () => {
+      if (!confirm('Remover a build importada?')) return;
       build = null; owned = {}; setIdx = 0;
       store.del(BUILD_KEY); store.del(OWNED_KEY); store.del(BUILD_KEY + '-set');
       refresh();
@@ -313,9 +342,12 @@
           const items = plan.main.slice(done, k);
           const spent = cum[k - 1] - (done ? cum[done - 1] : 0);
           const box = document.createElement('div');
-          box.className = 'passive-pause note';
-          box.innerHTML = `<span class="tag">🌳 Passivas</span> Pare aqui e gaste <b>~${spent} pontos</b> (você deve ter ~${pts}):` +
-            '<ul>' + items.map(n => `<li><b>${esc(n.name)}</b> <small>(${n.cost} pts)</small><br><small>${n.stats.map(esc).join(' · ')}</small></li>`).join('') + '</ul>';
+          box.className = 'callout callout-passive passive-pause';
+          box.innerHTML =
+            `<div class="callout-title">🌳 Pausa de passivas <span class="callout-meta">gaste ~${spent} de ~${pts} pontos</span></div>` +
+            '<div class="notable-list">' +
+            items.map(n => `<div class="notable"><span class="cost">${n.cost} pts</span><b>${esc(n.name)}</b><div class="stats">${n.stats.map(esc).join(' · ')}</div></div>`).join('') +
+            '</div>';
           el.before(box);
           done = k;
         }
@@ -333,7 +365,7 @@
       for (const n of plan.asc) { if (n.cost > pts) break; pts -= n.cost; picks.push(n.name); }
       if (!picks.length) return;
       const box = document.createElement('div');
-      box.className = 'passive-pause build-hint-line';
+      box.className = 'passive-pause asc-hint';
       box.innerHTML = `🌳 Ascendência: pegue <b>${picks.map(esc).join(', ')}</b>`;
       r.closest('.step-content').appendChild(box);
     });
@@ -355,13 +387,14 @@
   // ---------- Diálogo de importação ----------
   const dlg = document.createElement('dialog');
   dlg.id = 'buildDialog';
+  dlg.className = 'modal';
   dlg.innerHTML = `
-    <h3 style="margin-top:0">Importar build</h3>
+    <h3>Importar build</h3>
     <p>Cole o código de export do <b>Path of Building 2</b> (Import/Export Build → Generate/Copy) ou um link do <b>pobb.in</b>.
     A build fica salva só no seu navegador.</p>
     <textarea id="bdInput" placeholder="eNrtfWt34ziS6Gf..."></textarea>
     <div class="err" id="bdErr"></div>
-    <div class="row"><button type="button" id="bdCancel">Cancelar</button><button type="button" id="bdOk" class="active">Importar</button></div>`;
+    <div class="row"><button type="button" class="btn ghost" id="bdCancel">Cancelar</button><button type="button" class="btn primary" id="bdOk">Importar</button></div>`;
   document.body.appendChild(dlg);
   const input = dlg.querySelector('#bdInput');
   const err = dlg.querySelector('#bdErr');
@@ -377,11 +410,13 @@
       store.set(BUILD_KEY, build); store.set(OWNED_KEY, owned); store.set(BUILD_KEY + '-set', 0);
       dlg.close();
       refresh();
+      showSideTab('build');
+      toast('Build importada! As dicas aparecem nas recompensas do guia.');
     } catch (e) {
       err.textContent = e.message && !/atob|decod|invalid/i.test(e.message) ? e.message : 'Código inválido. Confira se copiou o código inteiro.';
     }
   });
 
-  document.getElementById('btnBuild').addEventListener('click', openDialog);
+  pill.addEventListener('click', () => (build ? showSideTab('build') : openDialog()));
   refresh();
 })();

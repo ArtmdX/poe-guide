@@ -4,331 +4,78 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PoE 2 — Rota Combinada (Guia + GuyThatDies) · Atos 1 a 4</title>
-    <style>
-      :root {
-        --bg: #14110e;
-        --surface: #1e1915;
-        --surface-2: #27211c;
-        --border: #3a3026;
-        --text: #efe6d8;
-        --muted: #b3a48e;
-        --accent: #d89b48;
-        --boss: #e06c60;
-        --npc: #7cc4fa;
-        --loc: #9fd38c;
-        --gem: #c59bf0;
-        --perm: #f2c96b;
-        --opt: #8f8475;
-        --tip: #6fb3b8;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        font-family:
-          system-ui,
-          -apple-system,
-          Segoe UI,
-          Roboto,
-          sans-serif;
-        line-height: 1.5;
-      }
-      header {
-        background: var(--surface);
-        border-bottom: 1px solid var(--border);
-        padding: 1rem 1.5rem;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        align-items: center;
-        justify-content: space-between;
-      }
-      h1 {
-        margin: 0;
-        font-size: 1.15rem;
-        color: var(--accent);
-      }
-      .sub {
-        font-size: 0.85rem;
-        color: var(--muted);
-      }
-      .controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      button {
-        background: var(--surface-2);
-        color: var(--text);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.4rem 0.75rem;
-        font-size: 0.85rem;
-        cursor: pointer;
-      }
-      button:hover {
-        border-color: var(--accent);
-      }
-      button.active {
-        background: var(--accent);
-        color: #14110e;
-        font-weight: 600;
-        border-color: var(--accent);
-      }
-      .progress-wrap {
-        font-size: 0.85rem;
-        color: var(--muted);
-        margin-left: 0.5rem;
-      }
-
-      .layout {
-        display: grid;
-        grid-template-columns: 230px 1fr;
-        max-width: 1280px;
-        margin: 0 auto;
-      }
-      aside {
-        border-right: 1px solid var(--border);
-        padding: 1rem;
-        position: sticky;
-        top: 64px;
-        height: calc(100vh - 64px);
-        overflow-y: auto;
-      }
-      aside a {
-        display: block;
-        color: var(--muted);
-        text-decoration: none;
-        padding: 0.3rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.88rem;
-      }
-      aside a:hover {
-        background: var(--surface);
-        color: var(--text);
-      }
-      aside .act-sep {
-        margin-top: 0.8rem;
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: var(--accent);
-        padding: 0.25rem 0.5rem;
-      }
-
-      main {
-        padding: 1.5rem;
-      }
-      .info-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-left: 3px solid var(--tip);
-        border-radius: 6px;
-        padding: 0.9rem 1.1rem;
-        margin-bottom: 1.5rem;
-      }
-      .info-box summary {
-        cursor: pointer;
-        font-weight: 600;
-        color: var(--tip);
-      }
-      .info-box ul {
-        margin: 0.6rem 0 0;
-        padding-left: 1.2rem;
-        color: var(--muted);
-      }
-      .info-box li {
-        margin-bottom: 0.35rem;
-      }
-
-      .zone-header {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 6px;
-        padding: 0.65rem 1rem;
-        margin: 1.4rem 0 0.5rem;
-        font-weight: 700;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .badge {
-        font-size: 0.72rem;
-        padding: 0.12rem 0.45rem;
-        border-radius: 4px;
-        background: var(--surface-2);
-        color: var(--muted);
-        border: 1px solid var(--border);
-        font-weight: 600;
-      }
-      .lvl {
-        color: var(--accent);
-        font-size: 0.82rem;
-        margin-left: auto;
-      }
-
-      .step {
-        display: flex;
-        gap: 0.7rem;
-        padding: 0.55rem 0.75rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-        cursor: pointer;
-        align-items: flex-start;
-      }
-      .step:hover {
-        background: rgba(255, 255, 255, 0.02);
-      }
-      .checkbox {
-        width: 18px;
-        height: 18px;
-        border: 1.5px solid var(--muted);
-        border-radius: 4px;
-        margin-top: 2px;
-        flex-shrink: 0;
-        display: grid;
-        place-items: center;
-        font-size: 0.75rem;
-      }
-      .step.done .checkbox {
-        background: var(--accent);
-        border-color: var(--accent);
-        color: #14110e;
-        font-weight: 700;
-      }
-      .step.done .step-content {
-        text-decoration: line-through;
-        opacity: 0.55;
-      }
-
-      .note {
-        margin: 0.35rem 0 0.5rem 2rem;
-        padding: 0.5rem 0.8rem;
-        background: var(--surface-2);
-        border-left: 3px solid var(--accent);
-        border-radius: 0 4px 4px 0;
-        font-size: 0.88rem;
-        color: var(--muted);
-      }
-      .note.gtd {
-        border-left-color: var(--tip);
-      }
-      .note .tag {
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--accent);
-        margin-right: 0.4rem;
-      }
-      .note.gtd .tag {
-        color: var(--tip);
-      }
-
-      .boss {
-        color: var(--boss);
-        font-weight: 600;
-      }
-      .npc {
-        color: var(--npc);
-      }
-      .loc {
-        color: var(--loc);
-      }
-      .gem {
-        color: var(--gem);
-      }
-      .perm {
-        color: var(--perm);
-        font-weight: 600;
-      }
-      .skip {
-        color: var(--opt);
-        font-size: 0.82rem;
-      }
-      .reward {
-        font-size: 0.75rem;
-        background: var(--surface-2);
-        border: 1px solid var(--border);
-        padding: 0.08rem 0.4rem;
-        border-radius: 4px;
-        margin-left: 0.3rem;
-        color: var(--perm);
-      }
-
-      body.hide-done .step.done {
-        display: none;
-      }
-      body.alt-only .step.is-opt {
-        display: none;
-      }
-      body.hide-gtd .note.gtd {
-        display: none;
-      }
-
-      @media (max-width: 820px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
-        aside {
-          display: none;
-        }
-      }
-    </style>
-    <link rel="stylesheet" href="build.css" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="act-page" data-progress-key="poe2-combined-a1-a4-v1">
-    <header>
-      <div>
-        <h1>PoE 2 — Rota Combinada (Guia + GuyThatDies)</h1>
-        <div class="sub">Atos 1 a 4 · Checklist interativo com macetes de rota e checkpoints</div>
+    <header class="topbar">
+      <button type="button" class="icon-btn menu-btn" id="btnMenu" aria-label="Abrir navegação">☰</button>
+      <div class="brand">
+        <h1>PoE 2 · Rota de Campanha</h1>
+        <div class="sub">Atos 1–4 · Guia + GuyThatDies</div>
       </div>
-      <div class="controls">
-        <button type="button" id="btnHideDone">Ocultar feitos</button>
-        <button type="button" id="btnAltRun">Apenas obrigatórios</button>
-        <button type="button" id="btnToggleGtd" class="active">Dicas GuyThatDies</button>
-        <button type="button" id="btnBuild">Importar build</button>
-        <button type="button" id="btnReset">Resetar</button>
-        <span class="progress-wrap" id="progressText">0 / 0</span>
+      <div class="progress" title="Passos concluídos">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <span class="progress-text" id="progressText">0 / 0</span>
+      </div>
+      <div class="pills">
+        <button type="button" class="pill" id="gamePill" title="Lê o Client.txt do PoE2 para seguir sua posição no guia">
+          <span class="dot"></span><span class="pill-label">Conectar ao jogo</span>
+        </button>
+        <button type="button" class="pill" id="buildPill" title="Build do Path of Building 2">
+          <span class="pill-icon">⚔</span><span class="pill-label">Importar build</span>
+        </button>
       </div>
     </header>
 
+    <div class="toolbar" role="toolbar" aria-label="Filtros">
+      <button type="button" class="toggle" data-toggle="hide-done">Ocultar feitos</button>
+      <button type="button" class="toggle" data-toggle="alt-only">Só obrigatórios</button>
+      <button type="button" class="toggle" data-toggle="hide-gtd" data-invert>Dicas GuyThatDies</button>
+      <button type="button" class="toggle" data-toggle="hide-build" data-invert>Dicas da build</button>
+      <span class="spacer"></span>
+      <button type="button" class="btn primary" id="btnNext">Próximo passo ↓</button>
+      <button type="button" class="btn ghost" id="btnReset">Resetar</button>
+    </div>
+
     <div class="layout">
-      <aside aria-label="Navegação de zonas">
-        <div id="buildPanel"></div>
-        <div class="act-sep">Ato 1</div>
-        <a href="#a1-riverbank">Riverbank &amp; Clearfell</a>
-        <a href="#a1-grelwood">Grelwood &amp; Red Vale</a>
-        <a href="#a1-cemetery">Grim Tangle &amp; Cemetery</a>
-        <a href="#a1-ogham">Hunting Grounds &amp; Ogham</a>
+      <aside class="sidebar" id="sidebar" aria-label="Navegação">
+        <div class="side-tabs" role="tablist">
+          <button type="button" role="tab" class="side-tab active" data-tab="route">Rota</button>
+          <button type="button" role="tab" class="side-tab" data-tab="build">Build</button>
+        </div>
+        <nav class="nav" data-pane="route">
+          <div class="act-sep">Ato 1</div>
+          <a href="#a1-riverbank">Riverbank &amp; Clearfell</a>
+          <a href="#a1-grelwood">Grelwood &amp; Red Vale</a>
+          <a href="#a1-cemetery">Grim Tangle &amp; Cemetery</a>
+          <a href="#a1-ogham">Hunting Grounds &amp; Ogham</a>
 
-        <div class="act-sep">Ato 2</div>
-        <a href="#a2-vastiri">Vastiri &amp; Mawdun</a>
-        <a href="#a2-badlands">Halani Gates &amp; Badlands</a>
-        <a href="#a2-keth">Keth &amp; Titans</a>
-        <a href="#a2-deshar">Deshar &amp; Dreadnought</a>
+          <div class="act-sep">Ato 2</div>
+          <a href="#a2-vastiri">Vastiri &amp; Mawdun</a>
+          <a href="#a2-badlands">Halani Gates &amp; Badlands</a>
+          <a href="#a2-keth">Keth &amp; Titans</a>
+          <a href="#a2-deshar">Deshar &amp; Dreadnought</a>
 
-        <div class="act-sep">Ato 3</div>
-        <a href="#a3-marsh">Marsh, Jungle &amp; Crypts</a>
-        <a href="#a3-jiquani">Barrens, Jiquani &amp; Azak Bog</a>
-        <a href="#a3-drowned">Drowned City &amp; Kopec</a>
-        <a href="#a3-utzaal">Utzaal, Aggorat &amp; Black Chambers</a>
+          <div class="act-sep">Ato 3</div>
+          <a href="#a3-marsh">Marsh, Jungle &amp; Crypts</a>
+          <a href="#a3-jiquani">Barrens, Jiquani &amp; Azak Bog</a>
+          <a href="#a3-drowned">Drowned City &amp; Kopec</a>
+          <a href="#a3-utzaal">Utzaal, Aggorat &amp; Black Chambers</a>
 
-        <div class="act-sep">Ato 4</div>
-        <a href="#a4-kingsmarch">Kingsmarch &amp; Ilhas Iniciais</a>
-        <a href="#a4-hinekora">Whakapanu, Prisão &amp; Hinekora</a>
-        <a href="#a4-kedge">Kedge Bay &amp; Journey's End</a>
-        <a href="#a4-finale">Plunder's Point, Arastas &amp; Ngakanu</a>
+          <div class="act-sep">Ato 4</div>
+          <a href="#a4-kingsmarch">Kingsmarch &amp; Ilhas Iniciais</a>
+          <a href="#a4-hinekora">Whakapanu, Prisão &amp; Hinekora</a>
+          <a href="#a4-kedge">Kedge Bay &amp; Journey's End</a>
+          <a href="#a4-finale">Plunder's Point, Arastas &amp; Ngakanu</a>
+        </nav>
+        <div class="build-pane" data-pane="build" hidden>
+          <div id="buildPanel"></div>
+        </div>
       </aside>
+      <div class="scrim" id="scrim"></div>
 
       <main>
-        <details class="info-box" open>
+        <details class="callout callout-info" open>
           <summary>Regras Gerais da Rota Combinada (Guia + GuyThatDies)</summary>
           <ul>
             <li>
@@ -1218,72 +965,7 @@
       </main>
     </div>
 
-    <script>
-      const STORAGE_KEY = document.body.dataset.progressKey;
-      const steps = [...document.querySelectorAll('.step')];
-      const progressText = document.getElementById('progressText');
-
-      function loadState() {
-        try {
-          return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        } catch {
-          return {};
-        }
-      }
-      function saveState(state) {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        } catch {}
-      }
-
-      let state = loadState();
-
-      function render() {
-        let doneCount = 0;
-        steps.forEach(el => {
-          const id = el.dataset.step;
-          const isDone = Boolean(state[id]);
-          el.classList.toggle('done', isDone);
-          el.querySelector('.checkbox').textContent = isDone ? '✓' : '';
-          if (isDone) doneCount++;
-        });
-        progressText.textContent = `${doneCount} / ${steps.length} concluídos`;
-      }
-
-      steps.forEach(el => {
-        el.addEventListener('click', () => {
-          const id = el.dataset.step;
-          state[id] = !state[id];
-          saveState(state);
-          render();
-        });
-      });
-
-      const btnHideDone = document.getElementById('btnHideDone');
-      const btnAltRun = document.getElementById('btnAltRun');
-      const btnToggleGtd = document.getElementById('btnToggleGtd');
-      const btnReset = document.getElementById('btnReset');
-
-      btnHideDone.addEventListener('click', () => {
-        document.body.classList.toggle('hide-done');
-        btnHideDone.classList.toggle('active');
-      });
-      btnAltRun.addEventListener('click', () => {
-        document.body.classList.toggle('alt-only');
-        btnAltRun.classList.toggle('active');
-      });
-      btnToggleGtd.addEventListener('click', () => {
-        document.body.classList.toggle('hide-gtd');
-        btnToggleGtd.classList.toggle('active');
-      });
-      btnReset.addEventListener('click', () => {
-        state = {};
-        saveState(state);
-        render();
-      });
-
-      render();
-    </script>
+    <script src="app.js"></script>
     <script src="build.js"></script>
     <script src="tracker.js"></script>
   </body>

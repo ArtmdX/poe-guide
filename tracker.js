@@ -1,16 +1,8 @@
 // Acompanha o jogo lendo o Client.txt do PoE2 (área atual e nível) — Chrome/Edge
 (() => {
-  const controls = document.querySelector('.controls');
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.id = 'btnLog';
-  btn.textContent = 'Conectar ao jogo';
-  btn.title = 'Lê o Client.txt do Path of Exile 2 para seguir sua posição no guia';
-  controls.insertBefore(btn, document.getElementById('btnReset'));
-  const status = document.createElement('span');
-  status.className = 'progress-wrap';
-  status.id = 'logStatus';
-  controls.appendChild(status);
+  const btn = document.getElementById('gamePill');
+  const label = btn.querySelector('.pill-label');
+  const setLabel = t => { label.textContent = t; };
 
   const LIVE = typeof window.showOpenFilePicker === 'function';
 
@@ -29,7 +21,7 @@
   };
   const IGNORE = /^\(|^(act|ato) \d|^interl[uú]d|^atlas$|hideout|^refúgio/i;
   const MAX_JUMP = 15; // não pula mais que isso de uma vez (ex.: Trial feito fora de ordem)
-  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, "'").replace(/^the\s+/, '').replace(/[^a-z0-9' ]/g, '').trim();
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/\p{M}/gu, '').replace(/[’']/g, "'").replace(/^the\s+/, '').replace(/[^a-z0-9' ]/g, '').trim();
   const steps = [...document.querySelectorAll('main .step')];
   const stepZones = steps.map(st => [...st.querySelectorAll('.loc')].map(l => norm(l.textContent)));
   const matches = (zone, loc) => loc === zone || (loc.length >= 4 && (` ${zone} `.includes(` ${loc} `) || ` ${loc} `.includes(` ${zone} `)));
@@ -39,7 +31,9 @@
   let zone = null;
 
   function setStatus() {
-    status.textContent = [level ? `${charName || ''} Lvl ${level}`.trim() : '', zone ? `📍 ${zone}` : ''].filter(Boolean).join(' · ');
+    const parts = [level ? `Lvl ${level}` : '', zone || ''].filter(Boolean);
+    if (parts.length) setLabel(parts.join(' · '));
+    btn.title = [charName, level && `Lvl ${level}`, zone].filter(Boolean).join(' · ') + (timer ? ' — clique para desconectar' : '');
   }
 
   function goTo(idx, markPrevious) {
@@ -51,6 +45,7 @@
     }
     steps.forEach(s => s.classList.remove('current-step'));
     steps[idx].classList.add('current-step');
+    markZoneOfStep(steps[idx]);
     steps[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
     cursor = idx;
   }
@@ -116,9 +111,9 @@
   function stop(msg) {
     clearInterval(timer);
     timer = null;
-    btn.classList.remove('active');
-    btn.textContent = 'Conectar ao jogo';
-    if (msg) status.textContent = msg;
+    btn.classList.remove('on');
+    setLabel('Conectar ao jogo');
+    if (msg) toast(msg);
   }
 
   async function start(h) {
@@ -130,8 +125,8 @@
     parse(await file.slice(tail).text(), false);
     offset = file.size;
     timer = setInterval(poll, 1000);
-    btn.classList.add('active');
-    btn.textContent = 'Conectado ✓';
+    btn.classList.add('on');
+    setLabel('Conectado');
     setStatus();
     saved = h;
     saveHandle(h);
@@ -164,14 +159,13 @@
     const f = fileInput.files[0];
     fileInput.value = '';
     if (!f) return;
-    status.textContent = 'Lendo log…';
     try {
       parse(await f.slice(Math.max(0, f.size - 2_000_000)).text(), false);
       setStatus();
-      btn.textContent = 'Atualizar do log';
-      if (!zone) status.textContent = 'Nenhuma área encontrada nesse arquivo — é o Client.txt do PoE2?';
+      btn.title = 'Clique para ler o log de novo';
+      if (!zone) toast('Nenhuma área encontrada nesse arquivo — é o Client.txt do PoE2?');
     } catch (e) {
-      status.textContent = 'Erro ao ler: ' + e.message;
+      toast('Erro ao ler: ' + e.message);
     }
   });
 
@@ -179,31 +173,29 @@
   btn.addEventListener('click', async () => {
     if (timer) { stop(''); return; }
     if (!LIVE) {
-      status.textContent = 'Seu navegador não acompanha o arquivo ao vivo: escolha o Client.txt (clique de novo para atualizar). Chrome/Edge atualizam sozinhos.';
+      toast('Escolha o Client.txt. Seu navegador não acompanha o arquivo ao vivo: clique de novo para atualizar (Chrome/Edge atualizam sozinhos).', 7000);
       fileInput.click();
       return;
     }
     try {
       let h = saved;
       if (h) {
-        status.textContent = 'Pedindo permissão…';
         if ((await h.requestPermission({ mode: 'read' })) !== 'granted') h = null;
       }
       if (!h) {
-        status.textContent = 'Escolha o Client.txt (pasta do jogo → logs)';
+        toast('Escolha o Client.txt (pasta do jogo → logs)');
         [h] = await window.showOpenFilePicker({
           id: 'poe2-log',
           types: [{ description: 'Client.txt do PoE2', accept: { 'text/plain': ['.txt'] } }],
         });
       }
-      status.textContent = 'Lendo log…';
       await start(h);
-      if (!zone) status.textContent = 'Conectado, mas nenhuma área encontrada ainda — é o Client.txt do PoE2?';
+      toast(zone ? `Conectado ao jogo — você está em ${zone}` : 'Conectado, mas nenhuma área encontrada ainda — é o Client.txt do PoE2?');
     } catch (e) {
       console.error(e);
-      status.textContent = e.name === 'AbortError' ? '' : 'Erro ao abrir o log: ' + e.message;
+      if (e.name !== 'AbortError') toast('Erro ao abrir o log: ' + e.message);
     }
   });
 
-  if (LIVE) loadHandle().then(h => { if (h) { saved = h; btn.textContent = 'Reconectar ao jogo'; } });
+  if (LIVE) loadHandle().then(h => { if (h) { saved = h; setLabel('Reconectar ao jogo'); } });
 })();
