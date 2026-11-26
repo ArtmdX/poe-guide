@@ -18,17 +18,32 @@
     return;
   }
 
-  const norm = s => s.toLowerCase().replace(/[’']/g, "'").replace(/^the\s+/, '').replace(/[^a-z0-9' ]/g, '').trim();
+  // Nomes das áreas no cliente em português → nome em inglês usado no guia
+  const PT = {
+    'Acampamento de Clearfell': 'Clearfell Encampment', 'Acampamento Zigurate': 'Ziggurat Encampment',
+    'Ruínas da Selva': 'Jungle Ruins', 'Terras Infestadas': 'Infested Barrens', 'Pantanal Quimérico': 'Chimeral Wetlands',
+    'Maquinário de Jiquani': "Jiquani's Machinarium", 'Santuário de Jiquani': "Jiquani's Sanctum",
+    'As Hidrovias de Matlan': 'The Matlan Waterways', 'A Cidade Submersa': 'The Drowned City', 'O Cofre Derretido': 'The Molten Vault',
+    'Ápice da Imundície': 'Apex of Filth', 'Templo de Kopec': 'Temple of Kopec', 'As Câmaras Sombrias': 'The Black Chambers',
+    'O Charco Azak': 'Azak Bog', 'Baía Ancoreta': 'Kedge Bay', 'Fim da Jornada': "Journey's End", 'Prisão Abandonada': 'Abandoned Prison',
+    'Confinamento Solitário': 'Solitary Confinement', 'Ilha Whakapanu': 'Whakapanu Island', 'Cavernas Cantoras': 'Singing Caverns',
+    'Olho de Hinekora': 'Eye of Hinekora', 'Salão dos Mortos': 'Halls of the Dead', 'Provação dos Ancestrais': 'Trial of Ancestors',
+    'Ilha da Família': 'Isle of Kin', 'Galerias Vulcânicas': 'Volcanic Warrens', 'A Excavação': 'The Excavation',
+    'Coração da Tribo': 'Heart of the Tribe', 'A Provação do Caos': 'Trial of Chaos', 'Provação das Sekhemas': 'Trial of the Sekhemas',
+  };
+  const IGNORE = /^\(|^(act|ato) \d|^interl[uú]d|^atlas$|hideout|^refúgio/i;
+  const MAX_JUMP = 15; // não pula mais que isso de uma vez (ex.: Trial feito fora de ordem)
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[’']/g, "'").replace(/^the\s+/, '').replace(/[^a-z0-9' ]/g, '').trim();
   const steps = [...document.querySelectorAll('main .step')];
   const stepZones = steps.map(st => [...st.querySelectorAll('.loc')].map(l => norm(l.textContent)));
-  const matches = (zone, loc) => loc === zone || (loc.length >= 4 && (zone.startsWith(loc) || loc.startsWith(zone)));
+  const matches = (zone, loc) => loc === zone || (loc.length >= 4 && (` ${zone} `.includes(` ${loc} `) || ` ${loc} `.includes(` ${zone} `)));
 
   let cursor = -1;
   let level = null;
   let zone = null;
 
   function setStatus() {
-    status.textContent = [level ? `Lvl ${level}` : '', zone ? `📍 ${zone}` : ''].filter(Boolean).join(' · ');
+    status.textContent = [level ? `${charName || ''} Lvl ${level}`.trim() : '', zone ? `📍 ${zone}` : ''].filter(Boolean).join(' · ');
   }
 
   function goTo(idx, markPrevious) {
@@ -48,8 +63,9 @@
   function onZone(name, live) {
     zone = name;
     setStatus();
-    const z = norm(name);
-    for (let i = Math.max(cursor, 0); i < steps.length; i++) {
+    const z = norm(PT[name.trim()] || name);
+    const end = cursor < 0 ? steps.length : Math.min(steps.length, cursor + MAX_JUMP);
+    for (let i = Math.max(cursor, 0); i < end; i++) {
       if (stepZones[i].some(loc => matches(z, loc))) {
         if (i !== cursor) goTo(i, live);
         return;
@@ -64,7 +80,8 @@
   }
 
   const RE_ZONE = /(?:You have entered (.+?)\.\s*$|\[SCENE\] Set Source \[(.+?)\])/;
-  const RE_LEVEL = /\) is now level (\d+)/;
+  const RE_LEVEL = /: (\S+) \([^)]*\) (?:is now level|chegou ao n[ií]vel) (\d+)/;
+  let charName = null;
 
   function parse(text, live) {
     let lastZone = null;
@@ -72,13 +89,13 @@
       const z = line.match(RE_ZONE);
       if (z) {
         const name = z[1] || z[2];
-        if (name && name !== '(null)' && !/hideout/i.test(name)) {
+        if (name && !IGNORE.test(name.trim())) {
           if (live) onZone(name, true); else lastZone = name;
         }
         continue;
       }
       const l = line.match(RE_LEVEL);
-      if (l) onLevel(+l[1]);
+      if (l) { charName = l[1]; onLevel(+l[2]); }
     }
     if (!live && lastZone) onZone(lastZone, false);
   }
