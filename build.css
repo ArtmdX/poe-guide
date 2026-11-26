@@ -29,3 +29,4 @@ dialog#buildDialog p { font-size: 0.85rem; color: var(--muted); }
 .bs-link { font-size: 0.85rem; padding: 2px 0; }
 .bs-new { color: var(--perm); font-weight: 700; }
 .bs-legend { margin-top: 0.4rem; font-size: 0.75rem; color: var(--muted); }
+.build-hint small { font-weight: 400; opacity: 0.85; }

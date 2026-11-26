@@ -122,9 +122,12 @@
     return best || build.skillSets[setIdx] || build.skillSets[0];
   }
 
+  let supportHost = {};
   function gemsOf(set) {
     const skills = [], supports = [], spirit = [];
     set.links.forEach(link => link.forEach(g => {
+      const main = link.find(x => !x.support);
+      if (g.support && main && !supportHost[g.name]) supportHost[g.name] = main.name;
       const list = g.support ? supports : SPIRIT_RE.test(g.name) ? spirit : skills;
       if (!list.includes(g.name)) list.push(g.name);
     }));
@@ -136,6 +139,7 @@
     document.body.classList.toggle('no-build', !build);
     if (!build) return;
 
+    supportHost = {};
     const seen = new Set();
     const queue = { skill: [], support: [], spirit: [] };
     for (let act = 1; act <= 4; act++) {
@@ -182,6 +186,11 @@
           tag.className = 'build-hint ' + label;
           tag.title = 'Sugestão baseada na sua build importada';
           tag.textContent = '→ ' + name;
+          if (label === 'support' && supportHost[name]) {
+            const host = document.createElement('small');
+            host.textContent = ' em ' + supportHost[name];
+            tag.appendChild(host);
+          }
           chip.after(tag);
         });
       });
