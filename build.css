@@ -35,3 +35,5 @@ dialog#buildDialog p { font-size: 0.85rem; color: var(--muted); }
 .passive-pause ul { margin: 0.3rem 0 0; padding-left: 1.2rem; }
 .passive-pause small { color: var(--muted); }
 .build-hint-line { margin-top: 0.3rem; font-size: 0.85rem; color: var(--loc); }
+.step.current-step { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; box-shadow: 0 0 18px rgba(216, 155, 72, 0.35); }
+#logStatus { color: var(--accent); }
