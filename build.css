@@ -30,3 +30,8 @@ dialog#buildDialog p { font-size: 0.85rem; color: var(--muted); }
 .bs-new { color: var(--perm); font-weight: 700; }
 .bs-legend { margin-top: 0.4rem; font-size: 0.75rem; color: var(--muted); }
 .build-hint small { font-weight: 400; opacity: 0.85; }
+.passive-pause { border-left-color: var(--loc) !important; margin: 0.8rem 0; }
+.passive-pause .tag { background: var(--loc); color: #14110e; }
+.passive-pause ul { margin: 0.3rem 0 0; padding-left: 1.2rem; }
+.passive-pause small { color: var(--muted); }
+.build-hint-line { margin-top: 0.3rem; font-size: 0.85rem; color: var(--loc); }

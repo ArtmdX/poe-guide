@@ -86,6 +86,13 @@
       bandit: b.getAttribute('bandit') || '',
       skillSets,
       weapons,
+      tree: (() => {
+        const specs = doc.querySelectorAll('Tree > Spec');
+        const act = +(doc.querySelector('Tree')?.getAttribute('activeSpec') || 1);
+        const sp = specs[act - 1] || specs[0];
+        if (!sp) return null;
+        return { version: sp.getAttribute('treeVersion') || '0_5', nodes: (sp.getAttribute('nodes') || '').split(',').filter(Boolean) };
+      })(),
       notes: (doc.querySelector('Notes')?.textContent || '').replace(/\^x?[0-9A-Fa-f]{1,6}/g, '').trim(),
     };
   }
@@ -233,7 +240,117 @@
     });
   }
 
-  function refresh() { renderPanel(); renderHints(); }
+  // ---------- Passivas ----------
+  // Ordena os notables da árvore da build pelo caminho mais curto a partir do início da classe
+  async function computePassivePlan(b) {
+    if (!b.tree?.nodes.length) return null;
+    const url = `https://raw.githubusercontent.com/PathOfBuildingCommunity/PathOfBuilding-PoE2/dev/src/TreeData/${b.tree.version}/tree.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Não consegui baixar a árvore de passivas.');
+    const nodes = (await res.json()).nodes;
+    const adj = {};
+    for (const [k, v] of Object.entries(nodes))
+      for (const c of v.connections || []) {
+        const o = String(c.id);
+        (adj[k] ||= new Set()).add(o);
+        (adj[o] ||= new Set()).add(k);
+      }
+    const have = b.tree.nodes.filter(id => nodes[id]);
+    const isKey = id => nodes[id].isNotable || nodes[id].isKeystone || nodes[id].isJewelSocket;
+    const info = id => ({ name: nodes[id].name, stats: nodes[id].stats || [] });
+
+    function order(pool, starts) {
+      const S = new Set(starts), out = [];
+      for (;;) {
+        const prev = new Map(starts.length ? [...S].map(x => [x, null]) : []);
+        const q = [...S];
+        let found = null;
+        while (q.length) {
+          const u = q.shift();
+          if (!S.has(u) && isKey(u)) { found = u; break; }
+          for (const w of adj[u] || []) if (pool.has(w) && !prev.has(w)) { prev.set(w, u); q.push(w); }
+        }
+        if (!found) break;
+        let cost = 0;
+        for (let u = found; !S.has(u); u = prev.get(u)) { S.add(u); cost++; }
+        out.push({ ...info(found), cost });
+      }
+      return { out, rest: [...pool].filter(x => !S.has(x)).length };
+    }
+
+    const mainPool = new Set(have.filter(id => !nodes[id].ascendancyName));
+    const start = Object.keys(nodes).find(k => (nodes[k].classesStart || []).includes(b.className));
+    const main = start ? order(mainPool, [start]) : { out: [], rest: 0 };
+    const ascStart = have.find(id => nodes[id].isAscendancyStart);
+    const asc = ascStart ? order(new Set(have.filter(id => nodes[id].ascendancyName)), [ascStart]) : { out: [] };
+    return { main: main.out, rest: main.rest, asc: asc.out };
+  }
+
+  function renderPassives() {
+    document.querySelectorAll('.passive-pause').forEach(e => e.remove());
+    const plan = build?.passivePlan;
+    if (!plan?.main.length) return;
+    const cum = [];
+    plan.main.reduce((a, n, i) => (cum[i] = a + n.cost), 0);
+    const affordable = pts => { let k = 0; while (k < cum.length && cum[k] <= pts) k++; return k; };
+
+    let quest = 0, prevMax = 1, done = 0;
+    const headers = [...document.querySelectorAll('main .zone-header, main .step')];
+    const zoneHeaders = headers.filter(e => e.classList.contains('zone-header'));
+    headers.forEach(el => {
+      if (el.classList.contains('step')) {
+        el.querySelectorAll('.reward').forEach(r => { const m = r.textContent.match(/\+(\d+)\s*Skill Points?/i); if (m) quest += +m[1]; });
+        return;
+      }
+      const lv = (el.querySelector('.lvl')?.textContent.match(/(\d+)\D+(\d+)/) || []);
+      const zi = zoneHeaders.indexOf(el);
+      if (zi > 0) {
+        const pts = prevMax - 1 + quest;
+        const k = affordable(pts);
+        const nextIsNewAct = zoneHeaders[zi].id.slice(0, 2) !== zoneHeaders[zi - 1].id.slice(0, 2);
+        // só para quando valer a pena: 2+ notables novos, ou 1+ na virada de ato
+        if (k - done >= 2 || (k > done && nextIsNewAct)) {
+          const items = plan.main.slice(done, k);
+          const spent = cum[k - 1] - (done ? cum[done - 1] : 0);
+          const box = document.createElement('div');
+          box.className = 'passive-pause note';
+          box.innerHTML = `<span class="tag">🌳 Passivas</span> Pare aqui e gaste <b>~${spent} pontos</b> (você deve ter ~${pts}):` +
+            '<ul>' + items.map(n => `<li><b>${esc(n.name)}</b> <small>(${n.cost} pts)</small><br><small>${n.stats.map(esc).join(' · ')}</small></li>`).join('') + '</ul>';
+          el.before(box);
+          done = k;
+        }
+      }
+      if (lv[2]) prevMax = +lv[2];
+    });
+  }
+
+  function renderAscHint() {
+    const plan = build?.passivePlan;
+    if (!plan?.asc.length) return;
+    document.querySelectorAll('.step .reward').forEach(r => {
+      if (!/Ascend/i.test(r.textContent)) return;
+      let pts = 2, picks = [];
+      for (const n of plan.asc) { if (n.cost > pts) break; pts -= n.cost; picks.push(n.name); }
+      if (!picks.length) return;
+      const box = document.createElement('div');
+      box.className = 'passive-pause build-hint-line';
+      box.innerHTML = `🌳 Ascendência: pegue <b>${picks.map(esc).join(', ')}</b>`;
+      r.closest('.step-content').appendChild(box);
+    });
+  }
+
+  let planLoading = false;
+  async function ensurePlan() {
+    if (!build || build.passivePlan !== undefined || planLoading || !build.tree) return;
+    planLoading = true;
+    try { build.passivePlan = await computePassivePlan(build); }
+    catch (e) { console.warn(e); build.passivePlan = null; }
+    planLoading = false;
+    store.set(BUILD_KEY, build);
+    refresh();
+  }
+
+  function refresh() { renderPanel(); renderHints(); renderPassives(); renderAscHint(); ensurePlan(); }
 
   // ---------- Diálogo de importação ----------
   const dlg = document.createElement('dialog');
