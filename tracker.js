@@ -74,7 +74,7 @@
   const RE_LEVEL = /: (\S+) \([^)]*\) (?:is now level|chegou ao n[ií]vel) (\d+)/;
   let charName = null;
 
-  function parse(text, live) {
+  function parse(text, live, markOnFinal = false) {
     let lastZone = null;
     for (const line of text.split(/\r?\n/)) {
       const z = line.match(RE_ZONE);
@@ -88,23 +88,29 @@
       const l = line.match(RE_LEVEL);
       if (l) { charName = l[1]; onLevel(+l[2]); }
     }
-    if (!live && lastZone) onZone(lastZone, false);
+    if (!live && lastZone) onZone(lastZone, markOnFinal);
   }
 
   // ---------- Leitura do arquivo ----------
-  let handle = null, offset = 0, timer = null;
+  let handle = null, offset = 0, timer = null, partial = '', failures = 0;
 
   async function poll() {
     try {
       const file = await handle.getFile();
-      if (file.size < offset) offset = 0; // log recriado
+      if (file.size < offset) { offset = 0; partial = ''; } // log recriado
       if (file.size > offset) {
-        const text = await file.slice(offset).text();
+        const text = partial + (await file.slice(offset).text());
         offset = file.size;
-        parse(text, true);
+        // a última linha pode estar pela metade (o jogo ainda está escrevendo): guarda para a próxima leitura
+        const cut = text.lastIndexOf('\n') + 1;
+        partial = text.slice(cut);
+        parse(text.slice(0, cut), true);
       }
+      failures = 0;
     } catch (e) {
-      stop('Conexão com o log perdida');
+      // o jogo pode estar escrevendo no arquivo bem na hora da leitura: tenta de novo no próximo segundo
+      console.warn('Leitura do log falhou', e);
+      if (++failures >= 30) stop('Conexão com o log perdida — clique em "Conectar ao jogo" de novo.');
     }
   }
 
@@ -124,6 +130,8 @@
     cursor = -1;
     parse(await file.slice(tail).text(), false);
     offset = file.size;
+    partial = '';
+    failures = 0;
     timer = setInterval(poll, 1000);
     btn.classList.add('on');
     setLabel('Conectado');
@@ -160,9 +168,11 @@
     fileInput.value = '';
     if (!f) return;
     try {
-      parse(await f.slice(Math.max(0, f.size - 2_000_000)).text(), false);
+      const reread = zone !== null;
+      parse(await f.slice(Math.max(0, f.size - 2_000_000)).text(), false, reread);
       setStatus();
-      btn.title = 'Clique para ler o log de novo';
+      setLabel(`${label.textContent} · ↻`);
+      btn.title = 'Modo manual: clique e escolha o Client.txt de novo para atualizar';
       if (!zone) toast('Nenhuma área encontrada nesse arquivo — é o Client.txt do PoE2?');
     } catch (e) {
       toast('Erro ao ler: ' + e.message);
@@ -173,7 +183,9 @@
   btn.addEventListener('click', async () => {
     if (timer) { stop(''); return; }
     if (!LIVE) {
-      toast('Escolha o Client.txt. Seu navegador não acompanha o arquivo ao vivo: clique de novo para atualizar (Chrome/Edge atualizam sozinhos).', 7000);
+      toast(navigator.brave
+        ? 'O Brave não acompanha o arquivo ao vivo. Para atualizar sozinho: abra brave://flags/#file-system-access-api, ative e reinicie o Brave. Por enquanto, escolha o Client.txt (clique de novo para atualizar).'
+        : 'Seu navegador não acompanha o arquivo ao vivo: escolha o Client.txt (clique de novo para atualizar). Chrome e Edge atualizam sozinhos.', 10000);
       fileInput.click();
       return;
     }
